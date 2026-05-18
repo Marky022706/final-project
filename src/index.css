@@ -1,0 +1,88 @@
+/* src/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased min-h-screen transition-colors duration-200;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-100;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-emerald-600/30 rounded-full hover:bg-emerald-600/50 transition-colors;
+  }
+}
+
+@layer components {
+  /* Premium Glassmorphic Card */
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-lg shadow-slate-100/40 rounded-2xl;
+  }
+
+  /* Soft Ambient Backgrounds */
+  .gradient-bg {
+    background: radial-gradient(circle at 10% 20%, rgba(240, 253, 244, 1) 0%, rgba(255, 255, 255, 1) 90%);
+  }
+
+  .admin-gradient-bg {
+    background: radial-gradient(circle at 10% 20%, rgba(244, 252, 246, 1) 0%, rgba(241, 245, 249, 1) 100%);
+  }
+
+  /* Forest Green Gradient Hero Banner */
+  .forest-gradient {
+    @apply bg-gradient-to-br from-primary-900 via-primary-800 to-emerald-800;
+  }
+  
+  .emerald-gradient {
+    @apply bg-gradient-to-r from-emerald-600 to-teal-600;
+  }
+  
+  /* Input Elements styling */
+  .input-field {
+    @apply w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/20 focus:border-primary-550 transition-all duration-200 placeholder-slate-400;
+  }
+
+  /* Interactive active list rows */
+  .hover-row {
+    @apply hover:bg-slate-50/80 transition-colors duration-150 cursor-pointer;
+  }
+}
+
+/* Page transitions and keyframes */
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom Recharts Tooltip styling override */
+.recharts-default-tooltip {
+  @apply !bg-white/95 !backdrop-blur-md !border-slate-100 !shadow-xl !rounded-xl !p-3 !text-sm !font-sans;
+}
