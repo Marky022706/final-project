@@ -10,13 +10,13 @@ import { Search, Info, Filter, Book, BookMarked } from 'lucide-react';
 
 export const BookCatalog: React.FC = () => {
   const { user, refreshProfile } = useAuth();
-  
+
   const [books, setBooks] = useState<BookItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [selectedBook, setSelectedBook] = useState<BookItem | null>(null);
-  
+
   const [borrowLoadingId, setBorrowLoadingId] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -78,7 +78,7 @@ export const BookCatalog: React.FC = () => {
           type: 'success',
           message: `Book "${book.title}" successfully checked out! Due on ${new Date(response.data.data.due_date).toLocaleDateString()}.`,
         });
-        
+
         // Sync stats and refresh listings
         fetchCatalog();
         refreshProfile();
@@ -136,9 +136,8 @@ export const BookCatalog: React.FC = () => {
             <span className="px-3 py-1 bg-white border border-emerald-100 rounded-lg text-[10px] font-bold text-slate-600">
               My Active: {user.stats?.active_loans || 0}/3 Books
             </span>
-            <span className={`px-3 py-1 border rounded-lg text-[10px] font-bold ${
-              (user.stats?.unread_notifications || 0) > 0 ? 'bg-rose-50 border-rose-100 text-rose-600' : 'bg-white border-emerald-100 text-slate-600'
-            }`}>
+            <span className={`px-3 py-1 border rounded-lg text-[10px] font-bold ${(user.stats?.unread_notifications || 0) > 0 ? 'bg-rose-50 border-rose-100 text-rose-600' : 'bg-white border-emerald-100 text-slate-600'
+              }`}>
               My Fines: ₱{new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2 }).format(user.stats?.unpaid_fines || 0)}
             </span>
           </div>
@@ -147,9 +146,8 @@ export const BookCatalog: React.FC = () => {
 
       {/* Transaction Feedback banner */}
       {feedback && (
-        <div className={`p-4 rounded-xl flex items-start gap-2.5 text-xs font-semibold leading-relaxed border ${
-          feedback.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-600'
-        }`}>
+        <div className={`p-4 rounded-xl flex items-start gap-2.5 text-xs font-semibold leading-relaxed border ${feedback.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-600'
+          }`}>
           <Info className="h-4.5 w-4.5 flex-shrink-0 mt-0.5" />
           <span>{feedback.message}</span>
         </div>
@@ -318,7 +316,7 @@ export const BookCatalog: React.FC = () => {
                 {selectedBook.description || 'No summary overview currently cataloged for this book.'}
               </p>
             </div>
-            
+
             <div className="flex items-center gap-3 border-t border-slate-100 pt-4.5 justify-end">
               <Button variant="outline" size="sm" onClick={() => setSelectedBook(null)}>
                 Dismiss
