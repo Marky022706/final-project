@@ -1,5 +1,5 @@
 // src/components/common/Sidebar.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import logoImg from '../../assets/logo.png';
@@ -46,10 +46,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         { label: 'Notifications', path: '/notifications', icon: Bell },
       ];
 
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
   const handleLogout = () => {
-    if (confirm('Are you sure you want to log out from Balingasag Public Library?')) {
-      logout();
-    }
+    setIsLogoutModalOpen(true);
   };
 
   return (
@@ -133,6 +133,53 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           </button>
         </div>
       </aside>
+
+      {/* Premium custom Logout confirmation dialog modal */}
+      {isLogoutModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop overlay */}
+          <div 
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm animate-fade-in"
+            onClick={() => setIsLogoutModalOpen(false)}
+          />
+
+          {/* Modal Card Window */}
+          <div className="relative w-full max-w-sm bg-white/95 backdrop-blur-md border border-slate-100 rounded-2xl shadow-2xl p-6 text-center animate-fade-in z-10 space-y-4">
+            {/* Pulsing warning log-out icon */}
+            <div className="p-3.5 bg-rose-50 text-rose-500 rounded-full w-14 h-14 mx-auto flex items-center justify-center border border-rose-100/50 animate-pulse">
+              <LogOut className="h-6 w-6 stroke-[2.5]" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="text-lg font-bold text-slate-800 tracking-tight Outfit">
+                Do you really want to Log out?
+              </h3>
+              <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                Are you sure you want to end your current session? You will need your card credentials to sign back into Balingasag Library.
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-2.5">
+              <button
+                onClick={() => setIsLogoutModalOpen(false)}
+                className="flex-1 px-4 py-2.5 border border-slate-200 hover:border-slate-300 text-slate-600 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 transition-all active:scale-95"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setIsLogoutModalOpen(false);
+                  logout();
+                }}
+                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-100 transition-all active:scale-95"
+              >
+                Yes, Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

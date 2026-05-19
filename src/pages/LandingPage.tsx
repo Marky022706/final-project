@@ -64,6 +64,9 @@ export const LandingPage: React.FC = () => {
           <a href="#home" className="text-xs font-extrabold text-slate-500 hover:text-emerald-700 transition-colors uppercase tracking-wider">
             Home
           </a>
+          <a href="#catalog-preview" className="text-xs font-extrabold text-slate-500 hover:text-emerald-700 transition-colors uppercase tracking-wider">
+            Catalog
+          </a>
           <a href="#about-us" className="text-xs font-extrabold text-slate-500 hover:text-emerald-700 transition-colors uppercase tracking-wider">
             About Us
           </a>

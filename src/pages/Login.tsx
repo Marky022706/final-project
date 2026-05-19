@@ -41,7 +41,9 @@ export const Login: React.FC = () => {
       await login(email, password);
       // Success redirection is handled by the useEffect above
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Login failed. Please check your credentials.');
+      const errMsg = err.response?.data?.message || err.message || 'Login failed. Please check your credentials.';
+      setError(errMsg);
+      console.error('Login Process Failure:', errMsg);
       setIsSubmitting(false);
     }
   };
@@ -61,7 +63,7 @@ export const Login: React.FC = () => {
         <span>Back to Home</span>
       </Link>
 
-      <div className="w-full max-w-md space-y-6 relative z-10 animate-fade-in">
+      <div className="w-full max-w-md space-y-6 relative z-10 fade-in">
         {/* Logo and title */}
         <div className="flex flex-col items-center space-y-2.5 text-center">
           <Link to="/" className="h-14 w-14 flex-shrink-0 flex items-center justify-center rounded-full overflow-hidden hover:scale-105 transition-transform duration-200">
@@ -157,14 +159,29 @@ export const Login: React.FC = () => {
                 Register for Library Card
               </Link>
             </p>
-            <div className="text-[10px] text-slate-400 bg-slate-50/50 p-2.5 border border-slate-100 rounded-xl space-y-0.5">
-              <p className="font-bold text-slate-500 uppercase tracking-wider">Demo Credentials</p>
-              <p className="font-medium text-slate-400">Admin: <span className="font-bold text-slate-500 select-all">admin@balingasag.gov.ph</span> / <span className="font-bold text-slate-500 select-all">admin123</span></p>
-              <p className="font-medium text-slate-400">Member: <span className="font-bold text-slate-500 select-all">member@balingasag.gov.ph</span> / <span className="font-bold text-slate-500 select-all">member123</span></p>
-            </div>
           </div>
         </div>
       </div>
+      {/* Premium custom Login loading screen overlay */}
+      {(isSubmitting || authLoading) && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 backdrop-blur-md fade-in">
+          <div className="bg-white/10 backdrop-blur-lg border border-white/15 p-8 rounded-2xl max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center gap-4 text-center text-white">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20 animate-pulse"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-t-emerald-400 border-r-emerald-400 animate-spin"></div>
+            </div>
+            
+            <div className="space-y-1.5">
+              <h3 className="text-lg font-bold tracking-tight text-white Outfit">
+                Authenticating Account
+              </h3>
+              <p className="text-xs text-emerald-200/80 font-medium leading-relaxed">
+                Verifying your credentials on the municipal server... Please wait while we load your library card profile.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

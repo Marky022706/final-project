@@ -55,7 +55,9 @@ export const Signup: React.FC = () => {
         throw new Error(response.data.message || 'Registration failed.');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Registration failed. The email may already be in use.');
+      const errMsg = err.response?.data?.message || err.message || 'Registration failed. The email may already be in use.';
+      setError(errMsg);
+      console.error('Registration Process Failure:', errMsg);
       setIsSubmitting(false);
     }
   };
@@ -75,7 +77,7 @@ export const Signup: React.FC = () => {
         <span>Back to Home</span>
       </Link>
 
-      <div className="w-full max-w-lg space-y-6 relative z-10 animate-fade-in">
+      <div className="w-full max-w-lg space-y-6 relative z-10 fade-in">
         {/* Logo Header */}
         <div className="flex flex-col items-center space-y-2 text-center">
           <Link to="/" className="h-14 w-14 flex-shrink-0 flex items-center justify-center rounded-full overflow-hidden hover:scale-105 transition-transform duration-200">
@@ -223,6 +225,26 @@ export const Signup: React.FC = () => {
           </div>
         </div>
       </div>
+      {/* Premium custom Signup loading screen overlay */}
+      {(isSubmitting || authLoading) && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 backdrop-blur-md fade-in">
+          <div className="bg-white/10 backdrop-blur-lg border border-white/15 p-8 rounded-2xl max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center gap-4 text-center text-white">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20 animate-pulse"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-t-emerald-400 border-r-emerald-400 animate-spin"></div>
+            </div>
+            
+            <div className="space-y-1.5">
+              <h3 className="text-lg font-bold tracking-tight text-white Outfit">
+                Registering Profile
+              </h3>
+              <p className="text-xs text-emerald-200/80 font-medium leading-relaxed">
+                Generating your library card and establishing connection... Please wait while we set up your member dashboard.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

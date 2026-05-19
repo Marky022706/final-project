@@ -2,6 +2,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import { useAuth } from './hooks/useAuth';
 import DashboardLayout from './components/layout/DashboardLayout';
 import AdminRoute from './components/layout/AdminRoute';
 
@@ -28,8 +30,9 @@ import AdminReports from './pages/admin/AdminReports';
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Routes>
+      <ToastProvider>
+        <AuthProvider>
+          <Routes>
           {/* Public Front-Facing Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
@@ -101,8 +104,38 @@ export const App: React.FC = () => {
           {/* Page not found redirect fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <LogoutLoader />
       </AuthProvider>
+     </ToastProvider>
     </BrowserRouter>
+  );
+};
+
+// Full-screen premium frosted-glass logout loader
+const LogoutLoader: React.FC = () => {
+  const { isLoggingOut } = useAuth();
+
+  if (!isLoggingOut) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 backdrop-blur-md animate-fade-in">
+      <div className="bg-white/10 backdrop-blur-lg border border-white/15 p-8 rounded-2xl max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center gap-4 text-center text-white">
+        {/* Beautiful double-ring spinner */}
+        <div className="relative w-16 h-16">
+          <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20 animate-pulse"></div>
+          <div className="absolute inset-0 rounded-full border-4 border-t-emerald-400 border-r-emerald-400 animate-spin"></div>
+        </div>
+        
+        <div className="space-y-1.5">
+          <h3 className="text-lg font-bold tracking-tight text-white Outfit">
+            Securing Portal Session
+          </h3>
+          <p className="text-xs text-emerald-200/80 font-medium leading-relaxed">
+            Signing out from Balingasag Municipal Library... Please wait while we clear your credentials.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
 

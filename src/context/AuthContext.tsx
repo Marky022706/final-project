@@ -24,6 +24,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isLoggingOut: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -35,6 +36,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
 
   // Initialize: Load user from storage and check session freshness
   useEffect(() => {
@@ -98,7 +100,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Logout handler
   const logout = async () => {
-    setIsLoading(true);
+    setIsLoggingOut(true);
     const refreshToken = localStorage.getItem('balingasag_refresh_token');
     
     try {
@@ -112,7 +114,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.removeItem('balingasag_refresh_token');
       localStorage.removeItem('balingasag_user');
       setUser(null);
-      setIsLoading(false);
+      setIsLoggingOut(false);
     }
   };
 
@@ -153,6 +155,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         user,
         isAuthenticated: !!user,
         isLoading,
+        isLoggingOut,
         login,
         logout,
         refreshProfile,
