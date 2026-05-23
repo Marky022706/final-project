@@ -43,26 +43,26 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const originalWarn = console.warn;
     const originalError = console.error;
 
-    console.warn = (...args) => {
-      originalWarn(...args);
-      const message = args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ');
-      
-      // Filter out framework dev noise to prevent UI alert spam
-      if (
-        message.includes('Warning:') || 
-        message.includes('react-dom') || 
-        message.includes('react-router') || 
-        message.includes('recharts') || 
-        message.includes('Vite') ||
-        message.includes('HMR') ||
-        message.includes('lucide-react') ||
-        message.includes('tailwind')
-      ) {
-        return;
-      }
-      
-      warn(message);
-    };
+    // console.warn = (...args) => {
+    //   originalWarn(...args);
+    //   const message = args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ');
+
+    //   // Filter out framework dev noise to prevent UI alert spam
+    //   if (
+    //     message.includes('Warning:') ||
+    //     message.includes('react-dom') ||
+    //     message.includes('react-router') ||
+    //     message.includes('recharts') ||
+    //     message.includes('Vite') ||
+    //     message.includes('HMR') ||
+    //     message.includes('lucide-react') ||
+    //     message.includes('tailwind')
+    //   ) {
+    //     return;
+    //   }
+
+    //   warn(message);
+    // };
 
     console.error = (...args) => {
       originalError(...args);
@@ -70,10 +70,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       // Filter out framework dev noise to prevent UI alert spam
       if (
-        message.includes('Warning:') || 
-        message.includes('react-dom') || 
-        message.includes('react-router') || 
-        message.includes('recharts') || 
+        message.includes('Warning:') ||
+        message.includes('react-dom') ||
+        message.includes('react-router') ||
+        message.includes('recharts') ||
         message.includes('Download the React DevTools')
       ) {
         return;
