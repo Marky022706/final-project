@@ -11,6 +11,7 @@ interface ModalProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  showFooter?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -20,6 +21,7 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   footer,
   size = 'md',
+  showFooter = true,
 }) => {
   // Prevent scrolling behind modal
   useEffect(() => {
@@ -43,15 +45,15 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto pt-[5vh] sm:pt-[8vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in"
+        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm animate-modal-backdrop"
         onClick={onClose}
       />
 
       {/* Modal Dialog Window */}
-      <div className={`relative w-full bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-fade-in z-10 ${sizes[size]} max-h-[90vh]`}>
+      <div className={`relative w-full bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-modal-dialog z-10 ${sizes[size]} max-h-[90vh]`}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-slate-50/50">
           <h3 className="text-base font-bold text-slate-800 tracking-tight leading-none">
@@ -72,16 +74,18 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        {footer ? (
-          <div className="px-6 py-4.5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
-            {footer}
-          </div>
-        ) : (
-          <div className="px-6 py-4.5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
-            <Button variant="outline" size="sm" onClick={onClose}>
-              Close Window
-            </Button>
-          </div>
+        {showFooter && (
+          footer ? (
+            <div className="px-6 pt-4.5 pb-6 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
+              {footer}
+            </div>
+          ) : (
+            <div className="px-6 pt-4.5 pb-6 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
+              <Button variant="outline" size="sm" onClick={onClose}>
+                Dismiss
+              </Button>
+            </div>
+          )
         )}
       </div>
     </div>,

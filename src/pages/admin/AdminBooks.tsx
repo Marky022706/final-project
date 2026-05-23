@@ -446,7 +446,7 @@ export const AdminBooks: React.FC = () => {
           </div>
 
           <div className="flex justify-end gap-3 border-t border-slate-100 pt-4.5">
-            <Button type="button" variant="outline" size="sm" onClick={() => setAddModalOpen(false)}>Cancel</Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => setAddModalOpen(false)}>Dismiss</Button>
             <Button type="submit" variant="primary" size="sm" isLoading={formLoading}>Catalog Book</Button>
           </div>
         </form>
@@ -511,7 +511,7 @@ export const AdminBooks: React.FC = () => {
           </div>
 
           <div className="flex justify-end gap-3 border-t border-slate-100 pt-4.5">
-            <Button type="button" variant="outline" size="sm" onClick={() => setEditModalOpen(false)}>Cancel</Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => setEditModalOpen(false)}>Dismiss</Button>
             <Button type="submit" variant="primary" size="sm" isLoading={formLoading}>Save Modifications</Button>
           </div>
         </form>

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ArrowLeft, Eye, EyeOff, AlertCircle, KeyRound, Smartphone } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, AlertCircle, KeyRound, Smartphone, Shield, X } from 'lucide-react';
 import api from '../lib/api';
 import Button from '../components/common/Button';
 import logoImg from '../assets/logo.png';
@@ -25,6 +25,15 @@ export const Login: React.FC = () => {
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [resetDevCode, setResetDevCode] = useState<string | null>(null);
   const [resetLoading, setResetLoading] = useState(false);
+
+  // Popup states for Privacy Policy and Terms
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupType, setPopupType] = useState<'privacy' | 'terms'>('privacy');
+
+  const handleOpenPopup = (type: 'privacy' | 'terms') => {
+    setPopupType(type);
+    setShowPopup(true);
+  };
 
   // Dynamic Redirect if already authenticated
   useEffect(() => {
@@ -175,7 +184,7 @@ export const Login: React.FC = () => {
         </div>
 
         {/* Login form Card */}
-        <div className="bg-white/95 backdrop-blur-md border border-slate-100 rounded-2xl shadow-[0_28px_70px_rgba(15,23,42,0.24)] ring-1 ring-white/80 p-8 space-y-6">
+        <div className="bg-white/95 backdrop-blur-md border border-slate-100 rounded-2xl shadow-[0_28px_70px_rgba(15,23,42,0.24)] ring-1 ring-white/80 p-8 space-y-6 relative overflow-hidden">
           <div className="space-y-1">
             <h3 className="text-base font-bold text-slate-800 tracking-tight leading-none">
               {forgotMode ? 'Reset Account Password' : 'Account Sign In'}
@@ -347,8 +356,24 @@ export const Login: React.FC = () => {
                   onChange={(e) => setAgreementChecked(e.target.checked)}
                   className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 transition-colors duration-150 cursor-pointer"
                 />
-                <label htmlFor="agreement" className="text-xs text-slate-500 font-semibold select-none cursor-pointer leading-normal">
-                  I agree to the <span className="text-emerald-600 font-bold hover:underline">Privacy Policy</span> and <span className="text-emerald-600 font-bold hover:underline">Terms of Agreement</span>. *
+                <label htmlFor="agreement" className="text-xs text-slate-500 font-semibold select-none leading-normal">
+                  I agree to the{' '}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenPopup('privacy')}
+                    className="text-emerald-600 font-bold hover:underline inline-block focus:outline-none font-sans"
+                  >
+                    Privacy Policy
+                  </button>{' '}
+                  and{' '}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenPopup('terms')}
+                    className="text-emerald-600 font-bold hover:underline inline-block focus:outline-none font-sans"
+                  >
+                    Terms of Agreement
+                  </button>
+                  . *
                 </label>
               </div>
 
@@ -373,6 +398,75 @@ export const Login: React.FC = () => {
               </Link>
             </p>
           </div>
+
+          {/* Privacy Policy & Terms of Agreement Popup Overlay (Exactly same size as card, completely non-transparent bg-white) */}
+          {showPopup && (
+            <div className="absolute inset-0 bg-white z-50 rounded-2xl p-8 flex flex-col animate-fade-in text-left">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                    <Shield className="h-4.5 w-4.5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-800 tracking-tight">
+                      {popupType === 'privacy' ? 'Privacy Policy' : 'Terms of Agreement'}
+                    </h3>
+                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                      Balingasag Municipal Library
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPopup(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all border border-transparent hover:border-slate-200/60"
+                  aria-label="Close details"
+                >
+                  <X className="h-4.5 w-4.5" />
+                </button>
+              </div>
+
+              {/* Scrollable text contents */}
+              <div className="flex-1 overflow-y-auto py-5 pr-1 space-y-4 text-xs text-slate-600 leading-relaxed font-medium scrollbar-thin">
+                {popupType === 'privacy' ? (
+                  <>
+                    <p className="font-semibold text-slate-800 text-[13px]">Privacy Policy & Data Server Integrity</p>
+                    <p>Your privacy is important to us. Your profile info (First Name, Last Name, Phone, Address, Email) is strictly safely stored on the Balingasag library server database. We never sell, share or distribute your contact details to third-party databases. The collected data is solely used for library database card validation and physical identity authentication.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-semibold text-slate-800 text-[13px]">1. Terms of Book Borrowing</p>
+                    <p>By obtaining a Balingasag Municipal Library Card, you agree to take full responsibility for all materials borrowed. You promise to return borrowed books on or before their due dates in the same condition as when they were received.</p>
+
+                    <p className="font-semibold text-slate-800 text-[13px]">2. Fines and Penalties</p>
+                    <p>Late returns are subject to late fee fines set by municipal ordinances. Unresolved overdue items or unpaid fines may lead to temporary suspension or permanent cancellation of library card privileges.</p>
+
+                    <p className="font-semibold text-slate-800 text-[13px]">3. User Accounts</p>
+                    <p>Users agree to safeguard their passwords and avoid sharing them with others. You are responsible for any borrowing history associated with your library card credentials.</p>
+                  </>
+                )}
+              </div>
+
+              {/* Action Button */}
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3 bg-white">
+                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                  Read thoroughly before signing
+                </span>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setAgreementChecked(true);
+                    setShowPopup(false);
+                  }}
+                  variant="primary"
+                  className="py-2.5 px-5 text-xs font-bold"
+                >
+                  I Understand & Agree
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       {/* Premium custom Login loading screen overlay */}

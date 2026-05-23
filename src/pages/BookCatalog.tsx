@@ -6,7 +6,7 @@ import BookCard from '../components/common/BookCard';
 import type { BookItem } from '../components/common/BookCard';
 import Modal from '../components/common/Modal';
 import Button from '../components/common/Button';
-import { Search, Info, Filter, Book, BookMarked } from 'lucide-react';
+import { Search, Info, Filter, Book, BookMarked, CheckCircle } from 'lucide-react';
 
 export const BookCatalog: React.FC = () => {
   const { user, refreshProfile } = useAuth();
@@ -16,6 +16,8 @@ export const BookCatalog: React.FC = () => {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [selectedBook, setSelectedBook] = useState<BookItem | null>(null);
+  const [borrowConfirmBook, setBorrowConfirmBook] = useState<BookItem | null>(null);
+  const [successModalData, setSuccessModalData] = useState<{ title: string; dueDate: string } | null>(null);
 
   const [borrowLoadingId, setBorrowLoadingId] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -74,9 +76,9 @@ export const BookCatalog: React.FC = () => {
       });
 
       if (response.data && response.data.success) {
-        setFeedback({
-          type: 'success',
-          message: `Book "${book.title}" successfully checked out! Due on ${new Date(response.data.data.due_date).toLocaleDateString()}.`,
+        setSuccessModalData({
+          title: book.title,
+          dueDate: new Date(response.data.data.due_date).toLocaleDateString(),
         });
 
         // Sync stats and refresh listings
@@ -88,9 +90,9 @@ export const BookCatalog: React.FC = () => {
         type: 'error',
         message: err.response?.data?.message || err.message || 'Failed to borrow book.',
       });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setBorrowLoadingId(null);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -224,7 +226,7 @@ export const BookCatalog: React.FC = () => {
               key={book.id}
               book={book}
               onViewDetails={setSelectedBook}
-              onQuickBorrow={handleQuickBorrow}
+              onQuickBorrow={(book) => setBorrowConfirmBook(book)}
               isBorrowLoading={borrowLoadingId === book.id}
             />
           ))}
@@ -329,11 +331,103 @@ export const BookCatalog: React.FC = () => {
                 onClick={() => {
                   const bk = selectedBook;
                   setSelectedBook(null);
-                  handleQuickBorrow(bk);
+                  setBorrowConfirmBook(bk);
                 }}
               >
                 Borrow Book Copy
               </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Borrow Confirmation Modal */}
+      <Modal
+        isOpen={!!borrowConfirmBook}
+        onClose={() => setBorrowConfirmBook(null)}
+        title="Confirm Book Borrowing"
+        footer={
+          borrowConfirmBook && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setBorrowConfirmBook(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                isLoading={borrowLoadingId === borrowConfirmBook.id}
+                onClick={async () => {
+                  const bk = borrowConfirmBook;
+                  setBorrowConfirmBook(null);
+                  await handleQuickBorrow(bk);
+                }}
+              >
+                Proceed
+              </Button>
+            </>
+          )
+        }
+      >
+        {borrowConfirmBook && (
+          <div className="space-y-5 text-center px-4 pt-4 pb-2">
+            <div className="mx-auto h-12 w-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-1">
+              <Book className="h-6 w-6" />
+            </div>
+            
+            <div className="space-y-1.5">
+              <h4 className="text-sm font-bold text-slate-800">Confirm Book Borrowing</h4>
+              <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
+                You are about to check out <span className="font-extrabold text-slate-700">"{borrowConfirmBook.title}"</span> by {borrowConfirmBook.author}.
+              </p>
+            </div>
+
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100/80 space-y-2 text-left max-w-sm mx-auto">
+              <h5 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Borrowing Terms</h5>
+              <div className="space-y-1 text-xs text-slate-600">
+                <p className="flex justify-between">
+                  <span className="text-slate-400">Loan Duration:</span>
+                  <span className="font-bold text-slate-700">14 Days</span>
+                </p>
+                <p className="flex justify-between">
+                  <span className="text-slate-400">Overdue Fine:</span>
+                  <span className="font-bold text-rose-600">₱5.00 / day</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Borrow Success Modal */}
+      <Modal
+        isOpen={!!successModalData}
+        onClose={() => setSuccessModalData(null)}
+        title="Checkout Successful"
+        showFooter={false}
+        size="sm"
+      >
+        {successModalData && (
+          <div className="space-y-5 text-center px-4 pt-4 pb-8">
+            <div className="mx-auto h-12 w-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-1">
+              <CheckCircle className="h-6 w-6" />
+            </div>
+            
+            <div className="space-y-1.5">
+              <h4 className="text-base font-black text-slate-800">Check Out Successful!</h4>
+              <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
+                You have successfully checked out <span className="font-extrabold text-slate-700">"{successModalData.title}"</span>.
+              </p>
+            </div>
+
+            <div className="p-4 bg-emerald-50/40 rounded-2xl border border-emerald-100/50 max-w-sm mx-auto">
+              <span className="block text-[10px] uppercase tracking-wider text-emerald-600 font-bold mb-1">Return Deadline</span>
+              <span className="text-sm font-black text-emerald-700">
+                {successModalData.dueDate}
+              </span>
             </div>
           </div>
         )}

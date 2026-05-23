@@ -109,7 +109,7 @@ export const BookCard: React.FC<BookCardProps> = ({
               onClick={() => onQuickBorrow(book)}
               className="w-full text-xs"
             >
-              Quick Borrow
+              Borrow Book
             </Button>
           )}
         </div>

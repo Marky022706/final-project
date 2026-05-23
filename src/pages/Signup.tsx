@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ArrowLeft, AlertCircle, User, Lock, Shield, ChevronLeft, ChevronRight, Check, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, AlertCircle, User, Lock, Shield, ChevronLeft, ChevronRight, Check, Eye, EyeOff, X } from 'lucide-react';
 import api from '../lib/api';
 import Button from '../components/common/Button';
 import logoImg from '../assets/logo.png';
@@ -30,6 +30,15 @@ export const Signup: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Popup states for Privacy Policy and Terms
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupType, setPopupType] = useState<'privacy' | 'terms'>('privacy');
+
+  const handleOpenPopup = (type: 'privacy' | 'terms') => {
+    setPopupType(type);
+    setShowPopup(true);
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/dashboard', { replace: true });
@@ -38,21 +47,21 @@ export const Signup: React.FC = () => {
 
   const getPasswordStrength = (pwd: string) => {
     if (!pwd) return { score: 0, label: '', colorClass: '', textClass: '' };
-    
+
     let score = 0;
-    
+
     // Condition 1: Length check
     if (pwd.length >= 6) {
       score += 1;
     }
-    
+
     // Condition 2: Contains both letters and numbers
     const hasLetters = /[a-zA-Z]/.test(pwd);
     const hasNumbers = /[0-9]/.test(pwd);
     if (hasLetters && hasNumbers) {
       score += 1;
     }
-    
+
     // Condition 3: Contains uppercase, lowercase, numbers, and special chars
     const hasUppercase = /[A-Z]/.test(pwd);
     const hasLowercase = /[a-z]/.test(pwd);
@@ -60,7 +69,7 @@ export const Signup: React.FC = () => {
     if (pwd.length >= 8 && hasUppercase && hasLowercase && hasSpecial) {
       score += 1;
     }
-    
+
     // Map score to weak / neutral / strong
     if (score === 0 || score === 1) {
       return { score: 1, label: 'Weak', colorClass: 'bg-rose-500', textClass: 'text-rose-500' };
@@ -77,26 +86,35 @@ export const Signup: React.FC = () => {
     return /^\d+$/.test(trimmed);
   };
 
+  const containsNumbers = (str: string) => {
+    return /\d/.test(str);
+  };
+
   const handleNextStep1 = () => {
     setError(null);
     if (!firstName.trim() || !lastName.trim()) {
       setError('Please fill in all required fields (First Name and Last Name).');
       return;
     }
-    if (isNumericOnly(firstName)) {
-      setError('First Name cannot consist of numbers only.');
+    if (containsNumbers(firstName)) {
+      setError('First Name cannot contain numbers.');
       return;
     }
-    if (middleName && isNumericOnly(middleName)) {
-      setError('Middle Name cannot consist of numbers only.');
+    if (middleName && containsNumbers(middleName)) {
+      setError('Middle Name cannot contain numbers.');
       return;
     }
-    if (isNumericOnly(lastName)) {
-      setError('Last Name cannot consist of numbers only.');
+    if (containsNumbers(lastName)) {
+      setError('Last Name cannot contain numbers.');
       return;
     }
     if (address && isNumericOnly(address)) {
       setError('Address cannot consist of numbers only.');
+      return;
+    }
+    // Validate phone number digits if entered
+    if (phone && !/^\d+$/.test(phone)) {
+      setError('Phone number must contain numbers only.');
       return;
     }
     setStep(2);
@@ -135,8 +153,12 @@ export const Signup: React.FC = () => {
       return;
     }
 
-    if (isNumericOnly(firstName) || isNumericOnly(lastName) || (middleName && isNumericOnly(middleName)) || (address && isNumericOnly(address))) {
-      setError('Names and Address cannot consist of numbers only.');
+    if (containsNumbers(firstName) || containsNumbers(lastName) || (middleName && containsNumbers(middleName))) {
+      setError('First Name, Middle Name, and Last Name cannot contain numbers.');
+      return;
+    }
+    if (address && isNumericOnly(address)) {
+      setError('Address cannot consist of numbers only.');
       return;
     }
 
@@ -211,7 +233,7 @@ export const Signup: React.FC = () => {
         </div>
 
         {/* Card */}
-        <div className="bg-white/95 backdrop-blur-md border border-slate-100 rounded-2xl shadow-[0_28px_70px_rgba(15,23,42,0.24)] ring-1 ring-white/80 p-8 space-y-6">
+        <div className="bg-white/95 backdrop-blur-md border border-slate-100 rounded-2xl shadow-[0_28px_70px_rgba(15,23,42,0.24)] ring-1 ring-white/80 p-8 space-y-6 relative overflow-hidden">
 
           {/* Visual Step Process Stepper Indicator */}
           <div className="relative mb-4">
@@ -316,8 +338,14 @@ export const Signup: React.FC = () => {
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       placeholder="First Name"
-                      className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-xs placeholder-slate-400"
+                      className={`w-full px-3 py-2.5 bg-white border rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 text-xs placeholder-slate-400 ${containsNumbers(firstName)
+                        ? 'border-rose-500 focus:ring-rose-500/15 focus:border-rose-500'
+                        : 'border-slate-200 focus:ring-primary-550/15 focus:border-primary-550'
+                        }`}
                     />
+                    {containsNumbers(firstName) && (
+                      <p className="text-[10px] text-rose-500 font-semibold mt-1">Cannot contain numbers</p>
+                    )}
                   </div>
 
                   {/* Middle name */}
@@ -330,8 +358,14 @@ export const Signup: React.FC = () => {
                       value={middleName}
                       onChange={(e) => setMiddleName(e.target.value)}
                       placeholder="Optional"
-                      className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-xs placeholder-slate-400"
+                      className={`w-full px-3 py-2.5 bg-white border rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 text-xs placeholder-slate-400 ${containsNumbers(middleName)
+                        ? 'border-rose-500 focus:ring-rose-500/15 focus:border-rose-500'
+                        : 'border-slate-200 focus:ring-primary-550/15 focus:border-primary-550'
+                        }`}
                     />
+                    {containsNumbers(middleName) && (
+                      <p className="text-[10px] text-rose-500 font-semibold mt-1">Cannot contain numbers</p>
+                    )}
                   </div>
 
                   {/* Last name */}
@@ -345,8 +379,14 @@ export const Signup: React.FC = () => {
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       placeholder="Last Name"
-                      className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-xs placeholder-slate-400"
+                      className={`w-full px-3 py-2.5 bg-white border rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 text-xs placeholder-slate-400 ${containsNumbers(lastName)
+                        ? 'border-rose-500 focus:ring-rose-500/15 focus:border-rose-500'
+                        : 'border-slate-200 focus:ring-primary-550/15 focus:border-primary-550'
+                        }`}
                     />
+                    {containsNumbers(lastName) && (
+                      <p className="text-[10px] text-rose-500 font-semibold mt-1">Cannot contain numbers</p>
+                    )}
                   </div>
                 </div>
 
@@ -359,9 +399,15 @@ export const Signup: React.FC = () => {
                     type="text"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Phone Number"
-                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
+                    placeholder="Phone Number (Numbers only)"
+                    className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 text-sm placeholder-slate-400 ${phone && !/^\d+$/.test(phone)
+                      ? 'border-rose-500 focus:ring-rose-500/15 focus:border-rose-500'
+                      : 'border-slate-200 focus:ring-primary-550/15 focus:border-primary-550'
+                      }`}
                   />
+                  {phone && !/^\d+$/.test(phone) && (
+                    <p className="text-[10px] text-rose-500 font-semibold mt-1">Invalid: Phone must contain numbers only</p>
+                  )}
                 </div>
 
                 {/* Address */}
@@ -434,7 +480,7 @@ export const Signup: React.FC = () => {
                     </button>
                   </div>
                   <p className="text-[10px] text-slate-400 font-semibold">Must be at least 6 characters long.</p>
-                  
+
                   {/* Password Strength Indicator */}
                   {password && (() => {
                     const { score, label, colorClass, textClass } = getPasswordStrength(password);
@@ -463,22 +509,20 @@ export const Signup: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setRole('member')}
-                      className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all ${
-                        role === 'member'
-                          ? 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500/15'
-                          : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
-                      }`}
+                      className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all ${role === 'member'
+                        ? 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500/15'
+                        : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
+                        }`}
                     >
                       Library Member
                     </button>
                     <button
                       type="button"
                       onClick={() => setRole('admin')}
-                      className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all ${
-                        role === 'admin'
-                          ? 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500/15'
-                          : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
-                      }`}
+                      className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all ${role === 'admin'
+                        ? 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500/15'
+                        : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
+                        }`}
                     >
                       Administrator
                     </button>
@@ -558,8 +602,24 @@ export const Signup: React.FC = () => {
                     onChange={(e) => setAgreementChecked(e.target.checked)}
                     className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 transition-colors duration-150 cursor-pointer"
                   />
-                  <label htmlFor="agreement" className="text-xs text-slate-500 font-semibold select-none cursor-pointer leading-normal">
-                    I agree to the <span className="text-emerald-600 font-bold hover:underline">Privacy Policy</span> and <span className="text-emerald-600 font-bold hover:underline">Terms of Agreement</span>. *
+                  <label htmlFor="agreement" className="text-xs text-slate-500 font-semibold select-none leading-normal">
+                    I agree to the{' '}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenPopup('privacy')}
+                      className="text-emerald-600 font-bold hover:underline inline-block focus:outline-none font-sans"
+                    >
+                      Privacy Policy
+                    </button>{' '}
+                    and{' '}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenPopup('terms')}
+                      className="text-emerald-600 font-bold hover:underline inline-block focus:outline-none font-sans"
+                    >
+                      Terms of Agreement
+                    </button>
+                    . *
                   </label>
                 </div>
 
@@ -599,6 +659,75 @@ export const Signup: React.FC = () => {
               </Link>
             </p>
           </div>
+
+          {/* Privacy Policy & Terms of Agreement Popup Overlay (Exactly same size as card, completely non-transparent bg-white) */}
+          {showPopup && (
+            <div className="absolute inset-0 bg-white z-50 rounded-2xl p-8 flex flex-col animate-fade-in">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                    <Shield className="h-4.5 w-4.5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-800 tracking-tight">
+                      {popupType === 'privacy' ? 'Privacy Policy' : 'Terms of Agreement'}
+                    </h3>
+                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                      Balingasag Municipal Library
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPopup(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all border border-transparent hover:border-slate-200/60"
+                  aria-label="Close details"
+                >
+                  <X className="h-4.5 w-4.5" />
+                </button>
+              </div>
+
+              {/* Scrollable text contents */}
+              <div className="flex-1 overflow-y-auto py-5 pr-1 space-y-4 text-xs text-slate-600 leading-relaxed font-medium scrollbar-thin">
+                {popupType === 'privacy' ? (
+                  <>
+                    <p className="font-semibold text-slate-800 text-[13px]">Privacy Policy & Data Server Integrity</p>
+                    <p>Your privacy is important to us. Your profile info (First Name, Last Name, Phone, Address, Email) is strictly safely stored on the Balingasag library server database. We never sell, share or distribute your contact details to third-party databases. The collected data is solely used for library database card validation and physical identity authentication.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-semibold text-slate-800 text-[13px]">1. Terms of Book Borrowing</p>
+                    <p>By obtaining a Balingasag Municipal Library Card, you agree to take full responsibility for all materials borrowed. You promise to return borrowed books on or before their due dates in the same condition as when they were received.</p>
+
+                    <p className="font-semibold text-slate-800 text-[13px]">2. Fines and Penalties</p>
+                    <p>Late returns are subject to late fee fines set by municipal ordinances. Unresolved overdue items or unpaid fines may lead to temporary suspension or permanent cancellation of library card privileges.</p>
+
+                    <p className="font-semibold text-slate-800 text-[13px]">3. User Accounts</p>
+                    <p>Users agree to safeguard their passwords and avoid sharing them with others. You are responsible for any borrowing history associated with your library card credentials.</p>
+                  </>
+                )}
+              </div>
+
+              {/* Action Button */}
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3 bg-white">
+                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                  Read thoroughly before signing
+                </span>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setAgreementChecked(true);
+                    setShowPopup(false);
+                  }}
+                  variant="primary"
+                  className="py-2.5 px-5 text-xs font-bold"
+                >
+                  I Understand & Agree
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       {/* Premium custom Signup loading screen overlay */}

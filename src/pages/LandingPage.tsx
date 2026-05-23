@@ -1,5 +1,5 @@
 // src/pages/LandingPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { Book, Library, Search, Clock, ShieldCheck, HelpCircle, MessageSquare, Mail, Phone, ChevronLeft, ChevronRight, Filter, Menu, X } from 'lucide-react';
@@ -15,12 +15,111 @@ import about3 from '../assets/about-3.jpg';
 import about4 from '../assets/about-4.jpg';
 import about5 from '../assets/about-5.jpg';
 
+// Animated counter hook — counts from 0 to target when element is visible
+const useAnimatedCounter = (target: number, duration = 2000) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element || hasAnimated.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          const startTime = performance.now();
+
+          const animate = (currentTime: number) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // Ease-out cubic
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.round(eased * target));
+            if (progress < 1) requestAnimationFrame(animate);
+          };
+
+          requestAnimationFrame(animate);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [target, duration]);
+
+  // Reset animation tracking when target changes
+  useEffect(() => {
+    hasAnimated.current = false;
+    setCount(0);
+  }, [target]);
+
+  return { count, ref };
+};
+
 export const LandingPage: React.FC = () => {
   const [featuredBooks, setFeaturedBooks] = useState<BookItem[]>([]);
   const [selectedBook, setSelectedBook] = useState<BookItem | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('home');
   const aboutImages = [about1, about2, about3, about4, about5];
+
+  // Dynamic section highlight observer
+  useEffect(() => {
+    const sectionIds = ['hero', 'catalog-preview', 'about-us', 'contact-us'];
+    
+    const observerOptions = {
+      root: null,
+      rootMargin: '-30% 0px -50% 0px',
+      threshold: 0.1,
+    };
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          setActiveSection(id === 'hero' ? 'home' : id);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, observerOptions);
+
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    const handleScroll = () => {
+      const isAtBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 80;
+      if (isAtBottom) {
+        setActiveSection('contact-us');
+      } else if (window.scrollY === 0) {
+        setActiveSection('home');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // --- Public Stats ---
+  const LIBRARY_ESTABLISHED_YEAR = 1991;
+  const yearsOfService = new Date().getFullYear() - LIBRARY_ESTABLISHED_YEAR;
+  const [totalBooks, setTotalBooks] = useState(0);
+  const [activeMembers, setActiveMembers] = useState(0);
+
+  const booksCounter = useAnimatedCounter(totalBooks);
+  const membersCounter = useAnimatedCounter(activeMembers);
+  const yearsCounter = useAnimatedCounter(yearsOfService);
 
   // Full Catalog States
   const [catalogLoading, setCatalogLoading] = useState(true);
@@ -62,6 +161,22 @@ export const LandingPage: React.FC = () => {
     }
   };
 
+  // Fetch public stats on mount
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await api.get('/reports/public-stats');
+        if (res.data && res.data.success) {
+          setTotalBooks(res.data.data.total_books);
+          setActiveMembers(res.data.data.active_members);
+        }
+      } catch (err) {
+        console.error('Failed to load public stats:', err);
+      }
+    };
+    fetchStats();
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % aboutImages.length);
@@ -71,19 +186,24 @@ export const LandingPage: React.FC = () => {
 
   useEffect(() => {
     fetchCatalog();
-  }, [page]);
+  }, [page, category]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setPage(1);
-    fetchCatalog();
+    if (page === 1) {
+      // Already on page 1, effect won't re-trigger from setPage, so fetch directly
+      fetchCatalog();
+    } else {
+      setPage(1); // This triggers the useEffect which calls fetchCatalog
+    }
   };
 
   const handleFilterChange = (catVal: string) => {
     setCategory(catVal);
-    setPage(1);
-    // Timeout to let state apply
-    setTimeout(fetchCatalog, 50);
+    if (page !== 1) {
+      setPage(1);
+    }
+    // The useEffect with [page, category] will automatically re-fetch
   };
 
   // Prevent body scrolling when mobile menu is open
@@ -99,7 +219,7 @@ export const LandingPage: React.FC = () => {
   }, [mobileMenuOpen]);
 
   return (
-    <div id="home" className="min-h-screen bg-slate-50 gradient-bg flex flex-col scroll-smooth overflow-x-hidden">
+    <div id="home" className="min-h-screen bg-slate-50 gradient-bg flex flex-col scroll-smooth overflow-x-clip">
       {/* Header navbar */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm px-4 sm:px-6 py-5 sm:py-4.5">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
@@ -119,16 +239,44 @@ export const LandingPage: React.FC = () => {
 
           {/* Center navigation links for Desktop */}
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#home" className="text-xs font-bold text-slate-500 hover:text-emerald-700 transition-colors uppercase tracking-wider">
+            <a
+              href="#home"
+              className={`text-xs font-extrabold transition-all duration-200 uppercase tracking-wider relative py-1.5 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-emerald-600 after:transform after:origin-left after:transition-transform after:duration-200 hover:after:scale-x-100 ${
+                activeSection === 'home'
+                  ? 'text-emerald-600 after:scale-x-100'
+                  : 'text-slate-500 hover:text-emerald-600 after:scale-x-0'
+              }`}
+            >
               Home
             </a>
-            <a href="#catalog-preview" className="text-xs font-bold text-slate-500 hover:text-emerald-700 transition-colors uppercase tracking-wider">
+            <a
+              href="#catalog-preview"
+              className={`text-xs font-extrabold transition-all duration-200 uppercase tracking-wider relative py-1.5 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-emerald-600 after:transform after:origin-left after:transition-transform after:duration-200 hover:after:scale-x-100 ${
+                activeSection === 'catalog-preview'
+                  ? 'text-emerald-600 after:scale-x-100'
+                  : 'text-slate-500 hover:text-emerald-600 after:scale-x-0'
+              }`}
+            >
               Catalog
             </a>
-            <a href="#about-us" className="text-xs font-bold text-slate-500 hover:text-emerald-700 transition-colors uppercase tracking-wider">
+            <a
+              href="#about-us"
+              className={`text-xs font-extrabold transition-all duration-200 uppercase tracking-wider relative py-1.5 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-emerald-600 after:transform after:origin-left after:transition-transform after:duration-200 hover:after:scale-x-100 ${
+                activeSection === 'about-us'
+                  ? 'text-emerald-600 after:scale-x-100'
+                  : 'text-slate-500 hover:text-emerald-600 after:scale-x-0'
+              }`}
+            >
               About Us
             </a>
-            <a href="#contact-us" className="text-xs font-bold text-slate-500 hover:text-emerald-700 transition-colors uppercase tracking-wider">
+            <a
+              href="#contact-us"
+              className={`text-xs font-extrabold transition-all duration-200 uppercase tracking-wider relative py-1.5 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-emerald-600 after:transform after:origin-left after:transition-transform after:duration-200 hover:after:scale-x-100 ${
+                activeSection === 'contact-us'
+                  ? 'text-emerald-600 after:scale-x-100'
+                  : 'text-slate-500 hover:text-emerald-600 after:scale-x-0'
+              }`}
+            >
               Contact Us
             </a>
           </nav>
@@ -165,7 +313,7 @@ export const LandingPage: React.FC = () => {
       {mobileMenuOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex justify-end animate-fade-in">
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           />
@@ -196,32 +344,48 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Vertical Link Navigation */}
-            <nav className="flex-1 px-6 py-8 flex flex-col gap-5">
-              <a 
-                href="#home" 
+            <nav className="flex-1 px-4 py-8 flex flex-col gap-1.5">
+              <a
+                href="#home"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-bold text-slate-500 hover:text-emerald-700 transition-colors uppercase tracking-wider flex items-center gap-3 py-1.5"
+                className={`text-sm font-bold uppercase tracking-wider flex items-center gap-3 py-3 px-3 rounded-xl transition-all duration-150 ${
+                  activeSection === 'home'
+                    ? 'text-emerald-700 bg-emerald-50 border-l-4 border-emerald-600 pl-2'
+                    : 'text-slate-500 hover:text-emerald-700 hover:bg-emerald-50/50'
+                }`}
               >
                 Home
               </a>
-              <a 
-                href="#catalog-preview" 
+              <a
+                href="#catalog-preview"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-bold text-slate-500 hover:text-emerald-700 transition-colors uppercase tracking-wider flex items-center gap-3 py-1.5"
+                className={`text-sm font-bold uppercase tracking-wider flex items-center gap-3 py-3 px-3 rounded-xl transition-all duration-150 ${
+                  activeSection === 'catalog-preview'
+                    ? 'text-emerald-700 bg-emerald-50 border-l-4 border-emerald-600 pl-2'
+                    : 'text-slate-500 hover:text-emerald-700 hover:bg-emerald-50/50'
+                }`}
               >
                 Catalog
               </a>
-              <a 
-                href="#about-us" 
+              <a
+                href="#about-us"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-bold text-slate-500 hover:text-emerald-700 transition-colors uppercase tracking-wider flex items-center gap-3 py-1.5"
+                className={`text-sm font-bold uppercase tracking-wider flex items-center gap-3 py-3 px-3 rounded-xl transition-all duration-150 ${
+                  activeSection === 'about-us'
+                    ? 'text-emerald-700 bg-emerald-50 border-l-4 border-emerald-600 pl-2'
+                    : 'text-slate-500 hover:text-emerald-700 hover:bg-emerald-50/50'
+                }`}
               >
                 About Us
               </a>
-              <a 
-                href="#contact-us" 
+              <a
+                href="#contact-us"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-bold text-slate-500 hover:text-emerald-700 transition-colors uppercase tracking-wider flex items-center gap-3 py-1.5"
+                className={`text-sm font-bold uppercase tracking-wider flex items-center gap-3 py-3 px-3 rounded-xl transition-all duration-150 ${
+                  activeSection === 'contact-us'
+                    ? 'text-emerald-700 bg-emerald-50 border-l-4 border-emerald-600 pl-2'
+                    : 'text-slate-500 hover:text-emerald-700 hover:bg-emerald-50/50'
+                }`}
               >
                 Contact Us
               </a>
@@ -250,16 +414,16 @@ export const LandingPage: React.FC = () => {
       )}
 
       {/* Hero section */}
-      <section className="relative text-white px-6 py-20 md:py-28 text-center overflow-hidden">
+      <section id="hero" className="relative text-white px-6 py-20 md:py-28 text-center overflow-hidden">
         {/* Background Image Container with Blur effect and scale to prevent edge bleed */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center blur-[5px] scale-105 z-0"
           style={{ backgroundImage: `url(${heroBgImg})` }}
         />
-        
+
         {/* Cinematic dark gradient overlay for superb contrast and legibility */}
         <div className="absolute inset-0 bg-gradient-to-r from-primary-950/90 via-primary-950/75 to-emerald-950/85 z-10" />
-        
+
         {/* Soft decorative blur circle on top of overlay */}
         <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-72 h-72 rounded-full bg-emerald-500/10 blur-3xl z-10" />
 
@@ -279,7 +443,7 @@ export const LandingPage: React.FC = () => {
               to="/login"
               className="px-6 py-3.5 bg-white text-primary-900 hover:bg-emerald-50 text-sm font-bold rounded-xl shadow-lg transition-all duration-150"
             >
-              Get Library Card
+              Get Library Account
             </Link>
             <a
               href="#catalog-preview"
@@ -504,7 +668,7 @@ export const LandingPage: React.FC = () => {
                 {selectedBook.description || 'No summary overview currently cataloged for this book.'}
               </p>
             </div>
-            
+
             <div className="flex items-center gap-3 border-t border-slate-100 pt-4.5 justify-end">
               <span className="text-xs font-semibold text-slate-400">Want to borrow this book?</span>
               <Link
@@ -536,34 +700,39 @@ export const LandingPage: React.FC = () => {
             </p>
             <div className="grid grid-cols-3 gap-4 pt-4 text-center">
               <div className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100/40">
-                <span className="block text-xl md:text-2xl font-black text-emerald-600">3,000+</span>
+                <span ref={booksCounter.ref} className="block text-xl md:text-2xl font-black text-emerald-600">
+                  {booksCounter.count.toLocaleString()}+
+                </span>
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Catalog Books</span>
               </div>
               <div className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100/40">
-                <span className="block text-xl md:text-2xl font-black text-emerald-600">1,500+</span>
+                <span ref={membersCounter.ref} className="block text-xl md:text-2xl font-black text-emerald-600">
+                  {membersCounter.count.toLocaleString()}+
+                </span>
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Active Members</span>
               </div>
               <div className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100/40">
-                <span className="block text-xl md:text-2xl font-black text-emerald-600">35+ Yrs</span>
+                <span ref={yearsCounter.ref} className="block text-xl md:text-2xl font-black text-emerald-600">
+                  {yearsCounter.count}+ Yrs
+                </span>
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Service</span>
               </div>
             </div>
           </div>
-          
+
           <div className="relative rounded-2xl overflow-hidden shadow-xl border border-slate-100 h-80 bg-slate-100 group">
             {aboutImages.map((img, index) => (
               <img
                 key={index}
                 src={img}
                 alt={`Balingasag Municipal Library Activity ${index + 1}`}
-                className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out ${
-                  index === currentSlide ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-105 pointer-events-none z-0'
-                }`}
+                className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out ${index === currentSlide ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-105 pointer-events-none z-0'
+                  }`}
               />
             ))}
             {/* Cinematic dark gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent z-20" />
-            
+
             {/* Manual slideshow controls (visible on hover) */}
             <button
               onClick={(e) => {
@@ -595,7 +764,7 @@ export const LandingPage: React.FC = () => {
                 {currentSlide === 3 && "Work immersion and computer literacy workshops hosted by our dedicated librarians."}
                 {currentSlide === 4 && "Vibrant children's corner: Learning on colorful educational puzzle mats."}
               </p>
-              
+
               {/* Slide Indicator dots */}
               <div className="flex gap-1.5 justify-start">
                 {aboutImages.map((_, index) => (
@@ -605,9 +774,8 @@ export const LandingPage: React.FC = () => {
                       e.preventDefault();
                       setCurrentSlide(index);
                     }}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      index === currentSlide ? 'w-4 bg-emerald-400' : 'w-1.5 bg-white/50 hover:bg-white'
-                    }`}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${index === currentSlide ? 'w-4 bg-emerald-400' : 'w-1.5 bg-white/50 hover:bg-white'
+                      }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
                 ))}
@@ -634,7 +802,7 @@ export const LandingPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Contact Details Card 1 - Gmail Direct Link */}
-            <a 
+            <a
               href="mailto:raymarkacierto27@gmail.com"
               className="bg-white p-6 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg hover:border-emerald-200 transition-all duration-200 flex flex-col items-center text-center space-y-4 group"
             >
@@ -651,9 +819,9 @@ export const LandingPage: React.FC = () => {
             </a>
 
             {/* Contact Details Card 2 - Facebook Page Direct Link */}
-            <a 
-              href="https://www.facebook.com/atina2022" 
-              target="_blank" 
+            <a
+              href="https://www.facebook.com/atina2022"
+              target="_blank"
               rel="noopener noreferrer"
               className="bg-white p-6 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg hover:border-emerald-200 transition-all duration-200 flex flex-col items-center text-center space-y-4 group"
             >
@@ -670,7 +838,7 @@ export const LandingPage: React.FC = () => {
             </a>
 
             {/* Contact Details Card 3 - Mobile Hotline Direct Link */}
-            <a 
+            <a
               href="tel:+639552450503"
               className="bg-white p-6 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg hover:border-emerald-200 transition-all duration-200 flex flex-col items-center text-center space-y-4 group"
             >
@@ -699,6 +867,12 @@ export const LandingPage: React.FC = () => {
           <p className="text-xs text-primary-400 font-medium">
             © {new Date().getFullYear()} Balingasag Municipal Library. All rights reserved.
           </p>
+          <div className="border-t border-primary-800/50 pt-4 mt-4">
+            <p className="text-[10px] text-primary-500 font-semibold uppercase tracking-wider mb-1.5">Development Team</p>
+            <p className="text-xs text-primary-300 font-medium">
+              Raymark Jay Acierto &nbsp;·&nbsp; Althea Roa
+            </p>
+          </div>
         </div>
       </footer>
     </div>
