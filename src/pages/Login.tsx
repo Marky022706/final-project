@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ArrowLeft, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, AlertCircle, KeyRound, Smartphone } from 'lucide-react';
+import api from '../lib/api';
 import Button from '../components/common/Button';
 import logoImg from '../assets/logo.png';
 
@@ -16,6 +17,14 @@ export const Login: React.FC = () => {
   const [agreementChecked, setAgreementChecked] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [resetStep, setResetStep] = useState<'request' | 'verify'>('request');
+  const [resetPhone, setResetPhone] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
+  const [resetDevCode, setResetDevCode] = useState<string | null>(null);
+  const [resetLoading, setResetLoading] = useState(false);
 
   // Dynamic Redirect if already authenticated
   useEffect(() => {
@@ -54,6 +63,86 @@ export const Login: React.FC = () => {
     }
   };
 
+  const handleRequestResetCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setResetMessage(null);
+    setResetDevCode(null);
+
+    if (!resetPhone.trim()) {
+      setError('Please enter your registered phone number.');
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const response = await api.post('/auth/request-password-reset', {
+        phone: resetPhone.trim(),
+      });
+
+      setResetMessage(response.data.message || 'Reset code sent to your registered phone number.');
+      setResetDevCode(response.data.data?.dev_code || null);
+      setResetStep('verify');
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Unable to send reset code.');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setResetMessage(null);
+
+    if (!resetCode.trim() || !resetPassword) {
+      setError('Please enter the reset code and your new password.');
+      return;
+    }
+
+    if (resetPassword.length < 6) {
+      setError('New password must be at least 6 characters long.');
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const response = await api.post('/auth/reset-password', {
+        phone: resetPhone.trim(),
+        code: resetCode.trim(),
+        password: resetPassword,
+      });
+
+      setResetMessage(response.data.message || 'Password reset successfully. You can now sign in.');
+      setForgotMode(false);
+      setResetStep('request');
+      setResetPhone('');
+      setResetCode('');
+      setResetPassword('');
+      setResetDevCode(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Unable to reset password.');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const openForgotMode = () => {
+    setForgotMode(true);
+    setError(null);
+    setResetMessage(null);
+  };
+
+  const closeForgotMode = () => {
+    setForgotMode(false);
+    setResetStep('request');
+    setResetCode('');
+    setResetPassword('');
+    setResetDevCode(null);
+    setError(null);
+    setResetMessage(null);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 gradient-bg relative overflow-hidden">
       {/* Soft background decor blurs */}
@@ -86,13 +175,15 @@ export const Login: React.FC = () => {
         </div>
 
         {/* Login form Card */}
-        <div className="bg-white/80 backdrop-blur-md border border-slate-100 rounded-2xl shadow-xl shadow-slate-100/40 p-8 space-y-6">
+        <div className="bg-white/95 backdrop-blur-md border border-slate-100 rounded-2xl shadow-[0_28px_70px_rgba(15,23,42,0.24)] ring-1 ring-white/80 p-8 space-y-6">
           <div className="space-y-1">
             <h3 className="text-base font-bold text-slate-800 tracking-tight leading-none">
-              Account Sign In
+              {forgotMode ? 'Reset Account Password' : 'Account Sign In'}
             </h3>
             <p className="text-xs text-slate-400 font-semibold">
-              Enter your library card credentials below
+              {forgotMode
+                ? 'We will send a 6-digit code to your registered phone number'
+                : 'Enter your library card credentials below'}
             </p>
           </div>
 
@@ -103,74 +194,175 @@ export const Login: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email Field */}
-            <div className="space-y-1.5">
-              <label htmlFor="email" className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
-                Library Registered Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
-              />
+          {resetMessage && (
+            <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-700 flex items-start gap-2.5 text-xs font-semibold leading-relaxed">
+              <KeyRound className="h-4.5 w-4.5 flex-shrink-0 mt-0.5" />
+              <span>{resetMessage}</span>
             </div>
+          )}
 
-            {/* Password Field */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
-                  Account Password
+          {forgotMode ? (
+            <form onSubmit={resetStep === 'request' ? handleRequestResetCode : handleResetPassword} className="space-y-4">
+              <div className="space-y-1.5">
+                <label htmlFor="reset-phone" className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
+                  Registered Phone Number
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                    <Smartphone className="h-4.5 w-4.5" />
+                  </span>
+                  <input
+                    id="reset-phone"
+                    type="tel"
+                    required
+                    value={resetPhone}
+                    onChange={(e) => setResetPhone(e.target.value)}
+                    placeholder="+63 9XX XXX XXXX"
+                    disabled={resetStep === 'verify'}
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400 disabled:bg-slate-50 disabled:text-slate-400"
+                  />
+                </div>
+              </div>
+
+              {resetStep === 'verify' && (
+                <div className="space-y-4 fade-in">
+                  <div className="space-y-1.5">
+                    <label htmlFor="reset-code" className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
+                      6-Digit Reset Code
+                    </label>
+                    <input
+                      id="reset-code"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      required
+                      value={resetCode}
+                      onChange={(e) => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="Enter code"
+                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400 tracking-[0.3em] font-bold"
+                    />
+                    {resetDevCode && (
+                      <p className="text-[10px] text-amber-600 font-bold">
+                        Local test code: {resetDevCode}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="reset-password" className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
+                      New Password
+                    </label>
+                    <input
+                      id="reset-password"
+                      type="password"
+                      required
+                      value={resetPassword}
+                      onChange={(e) => setResetPassword(e.target.value)}
+                      placeholder="New password"
+                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeForgotMode}
+                  className="py-3 text-xs"
+                  disabled={resetLoading}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="py-3 text-xs"
+                  isLoading={resetLoading}
+                  disabled={resetLoading}
+                >
+                  {resetStep === 'request' ? 'Send Code' : 'Reset Password'}
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Email Field */}
+              <div className="space-y-1.5">
+                <label htmlFor="email" className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
+                  Library Registered Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email"
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
+                />
+              </div>
+
+              {/* Password Field */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="password" className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
+                    Account Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={openForgotMode}
+                    className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password"
+                    className="w-full pl-4 pr-10.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Privacy and Agreement Checkbox */}
+              <div className="flex items-start gap-2.5 py-1">
+                <input
+                  id="agreement"
+                  type="checkbox"
+                  checked={agreementChecked}
+                  onChange={(e) => setAgreementChecked(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 transition-colors duration-150 cursor-pointer"
+                />
+                <label htmlFor="agreement" className="text-xs text-slate-500 font-semibold select-none cursor-pointer leading-normal">
+                  I agree to the <span className="text-emerald-600 font-bold hover:underline">Privacy Policy</span> and <span className="text-emerald-600 font-bold hover:underline">Terms of Agreement</span>. *
                 </label>
               </div>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                  className="w-full pl-4 pr-10.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none"
-                >
-                  {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
-                </button>
-              </div>
-            </div>
 
-            {/* Privacy and Agreement Checkbox */}
-            <div className="flex items-start gap-2.5 py-1">
-              <input
-                id="agreement"
-                type="checkbox"
-                checked={agreementChecked}
-                onChange={(e) => setAgreementChecked(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 transition-colors duration-150 cursor-pointer"
-              />
-              <label htmlFor="agreement" className="text-xs text-slate-500 font-semibold select-none cursor-pointer leading-normal">
-                I agree to the <span className="text-emerald-600 font-bold hover:underline">Privacy Policy</span> and <span className="text-emerald-600 font-bold hover:underline">Terms of Agreement</span>. *
-              </label>
-            </div>
-
-            <Button
-              type="submit"
-              variant="primary"
-              className="w-full py-3 text-xs"
-              isLoading={isSubmitting || authLoading}
-              disabled={!agreementChecked || isSubmitting || authLoading}
-            >
-              Sign In to Dashboard
-            </Button>
-          </form>
+              <Button
+                type="submit"
+                variant="primary"
+                className="w-full py-3 text-xs"
+                isLoading={isSubmitting || authLoading}
+                disabled={!agreementChecked || isSubmitting || authLoading}
+              >
+                Sign In to Dashboard
+              </Button>
+            </form>
+          )}
 
           {/* Helper notes */}
           <div className="border-t border-slate-50 pt-5 text-center space-y-2">

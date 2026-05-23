@@ -34,6 +34,7 @@ try {
     $users = [
         [
             'first_name' => 'Balingasag Library',
+            'middle_name' => 'Municipal',
             'last_name' => 'Admin',
             'email' => 'admin@balingasag.gov.ph',
             'password' => 'admin123',
@@ -44,6 +45,7 @@ try {
         ],
         [
             'first_name' => 'Juan',
+            'middle_name' => 'Ponce',
             'last_name' => 'Dela Cruz',
             'email' => 'member@balingasag.gov.ph',
             'password' => 'member123',
@@ -54,7 +56,8 @@ try {
         ],
         [
             'first_name' => 'Maria',
-            'last_name' => 'Clara',
+            'middle_name' => 'Clara',
+            'last_name' => 'Santos',
             'email' => 'maria@gmail.com',
             'password' => 'member123',
             'role' => 'member',
@@ -64,14 +67,15 @@ try {
         ]
     ];
 
-    $stmtUser = $pdo->prepare("INSERT INTO users (first_name, last_name, email, password_hash, role, phone, address, status, member_since) 
-        VALUES (:first_name, :last_name, :email, :password_hash, :role, :phone, :address, :status, :member_since)");
+    $stmtUser = $pdo->prepare("INSERT INTO users (first_name, middle_name, last_name, email, password_hash, role, phone, address, status, member_since) 
+        VALUES (:first_name, :middle_name, :last_name, :email, :password_hash, :role, :phone, :address, :status, :member_since)");
 
     $memberSince = date('Y-m-d', strtotime('-3 months'));
 
     foreach ($users as $u) {
         $stmtUser->execute([
             ':first_name' => $u['first_name'],
+            ':middle_name' => $u['middle_name'],
             ':last_name' => $u['last_name'],
             ':email' => $u['email'],
             ':password_hash' => password_hash($u['password'], PASSWORD_DEFAULT),

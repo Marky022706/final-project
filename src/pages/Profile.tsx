@@ -9,6 +9,7 @@ export const Profile: React.FC = () => {
   const { user, updateProfile } = useAuth();
 
   const [firstName, setFirstName] = useState(user?.first_name || '');
+  const [middleName, setMiddleName] = useState(user?.middle_name || '');
   const [lastName, setLastName] = useState(user?.last_name || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [address, setAddress] = useState(user?.address || '');
@@ -19,15 +20,29 @@ export const Profile: React.FC = () => {
 
   if (!user) return null;
 
+  const isNumericOnly = (str: string) => {
+    const trimmed = str.trim();
+    if (!trimmed) return false;
+    return /^\d+$/.test(trimmed);
+  };
+
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSuccess(null);
     setError(null);
+
+    if (isNumericOnly(firstName) || isNumericOnly(lastName) || (middleName && isNumericOnly(middleName)) || (address && isNumericOnly(address))) {
+      setError('Names and Address cannot consist of numbers only.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       await updateProfile({
         first_name: firstName,
+        middle_name: middleName,
         last_name: lastName,
         phone,
         address,
@@ -48,7 +63,7 @@ export const Profile: React.FC = () => {
         <Card className="flex flex-col items-center text-center p-8 bg-white border border-slate-100">
           <div className="relative">
             <div className="h-24 w-24 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 border-4 border-white shadow-xl shadow-emerald-100 flex items-center justify-center text-white text-3xl font-extrabold select-none">
-              {user.first_name[0]}{user.last_name[0]}
+              {user.first_name[0]}{user.middle_name ? user.middle_name[0] : ''}{user.last_name[0]}
             </div>
             <span className="absolute bottom-1 right-1 p-1.5 rounded-full bg-emerald-600 border border-white text-white">
               <ShieldCheck className="h-4 w-4" />
@@ -57,7 +72,7 @@ export const Profile: React.FC = () => {
 
           <div className="mt-4 space-y-1">
             <h3 className="text-base font-bold text-slate-800 tracking-tight leading-none">
-              {user.first_name} {user.last_name}
+              {user.first_name} {user.middle_name ? user.middle_name + ' ' : ''}{user.last_name}
             </h3>
             <p className="text-xs text-slate-400 capitalize font-semibold tracking-wide">
               {user.role} Cardholder
@@ -116,10 +131,10 @@ export const Profile: React.FC = () => {
           )}
 
           <form onSubmit={handleUpdate} className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               {/* First Name */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">
                   First Name
                 </label>
                 <input
@@ -127,13 +142,26 @@ export const Profile: React.FC = () => {
                   required
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-xs"
+                />
+              </div>
+
+              {/* Middle Name */}
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                  Middle Name
+                </label>
+                <input
+                  type="text"
+                  value={middleName}
+                  onChange={(e) => setMiddleName(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-xs"
                 />
               </div>
 
               {/* Last Name */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">
                   Last Name
                 </label>
                 <input
@@ -141,7 +169,7 @@ export const Profile: React.FC = () => {
                   required
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-xs"
                 />
               </div>
             </div>

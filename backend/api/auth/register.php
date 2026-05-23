@@ -18,11 +18,14 @@ if (!empty($missing)) {
 }
 
 $firstName = $input['first_name'];
+$middleName = $input['middle_name'] ?? null;
 $lastName = $input['last_name'];
 $email = filter_var($input['email'], FILTER_VALIDATE_EMAIL);
 $password = $input['password'];
 $phone = $input['phone'] ?? null;
 $address = $input['address'] ?? null;
+$role = $input['role'] ?? 'member';
+$adminPassword = $input['admin_password'] ?? null;
 
 if (!$email) {
     Response::badRequest('Please provide a valid email address.');
@@ -30,6 +33,14 @@ if (!$email) {
 
 if (strlen($password) < 6) {
     Response::badRequest('Password must be at least 6 characters long.');
+}
+
+if ($role === 'admin') {
+    if ($adminPassword !== ADMIN_REGISTRATION_PASSWORD) {
+        Response::forbidden('Invalid Admin registration passcode.');
+    }
+} else {
+    $role = 'member'; // Ensure fallback
 }
 
 try {
@@ -42,15 +53,17 @@ try {
         Response::badRequest('This email is already registered.');
     }
     
-    // Insert new user as member
-    $stmtInsert = $db->prepare("INSERT INTO users (first_name, last_name, email, password_hash, role, phone, address, status, member_since) 
-        VALUES (:first_name, :last_name, :email, :password_hash, 'member', :phone, :address, 'active', CURRENT_DATE)");
+    // Insert new user
+    $stmtInsert = $db->prepare("INSERT INTO users (first_name, middle_name, last_name, email, password_hash, role, phone, address, status, member_since) 
+        VALUES (:first_name, :middle_name, :last_name, :email, :password_hash, :role, :phone, :address, 'active', CURRENT_DATE)");
     
     $stmtInsert->execute([
         ':first_name' => $firstName,
+        ':middle_name' => $middleName,
         ':last_name' => $lastName,
         ':email' => $email,
         ':password_hash' => password_hash($password, PASSWORD_DEFAULT),
+        ':role' => $role,
         ':phone' => $phone,
         ':address' => $address
     ]);
@@ -60,3 +73,4 @@ try {
 } catch (PDOException $e) {
     Response::error('Server database error: ' . $e->getMessage());
 }
+

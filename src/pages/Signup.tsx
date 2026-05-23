@@ -17,12 +17,15 @@ export const Signup: React.FC = () => {
 
   // Form states
   const [firstName, setFirstName] = useState('');
+  const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [role, setRole] = useState<'member' | 'admin'>('member');
+  const [adminPassword, setAdminPassword] = useState('');
 
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,10 +71,32 @@ export const Signup: React.FC = () => {
     }
   };
 
+  const isNumericOnly = (str: string) => {
+    const trimmed = str.trim();
+    if (!trimmed) return false;
+    return /^\d+$/.test(trimmed);
+  };
+
   const handleNextStep1 = () => {
     setError(null);
     if (!firstName.trim() || !lastName.trim()) {
       setError('Please fill in all required fields (First Name and Last Name).');
+      return;
+    }
+    if (isNumericOnly(firstName)) {
+      setError('First Name cannot consist of numbers only.');
+      return;
+    }
+    if (middleName && isNumericOnly(middleName)) {
+      setError('Middle Name cannot consist of numbers only.');
+      return;
+    }
+    if (isNumericOnly(lastName)) {
+      setError('Last Name cannot consist of numbers only.');
+      return;
+    }
+    if (address && isNumericOnly(address)) {
+      setError('Address cannot consist of numbers only.');
       return;
     }
     setStep(2);
@@ -93,6 +118,10 @@ export const Signup: React.FC = () => {
       setError('Password must be at least 6 characters long for account security.');
       return;
     }
+    if (role === 'admin' && !adminPassword.trim()) {
+      setError('Please enter the Admin Registration Passcode.');
+      return;
+    }
     setStep(3);
   };
 
@@ -106,6 +135,16 @@ export const Signup: React.FC = () => {
       return;
     }
 
+    if (isNumericOnly(firstName) || isNumericOnly(lastName) || (middleName && isNumericOnly(middleName)) || (address && isNumericOnly(address))) {
+      setError('Names and Address cannot consist of numbers only.');
+      return;
+    }
+
+    if (role === 'admin' && !adminPassword.trim()) {
+      setError('Please enter the Admin Registration Passcode.');
+      return;
+    }
+
     if (!agreementChecked) {
       setError('You must read and agree to the Privacy Policy and User Agreement to proceed.');
       return;
@@ -116,11 +155,14 @@ export const Signup: React.FC = () => {
       // 1. Fire registration request
       const response = await api.post('/auth/register', {
         first_name: firstName.trim(),
+        middle_name: middleName.trim() || undefined,
         last_name: lastName.trim(),
         email: email.trim(),
         password,
         phone: phone.trim() || undefined,
         address: address.trim() || undefined,
+        role: role,
+        admin_password: role === 'admin' ? adminPassword : undefined,
       });
 
       if (response.data && response.data.success) {
@@ -169,7 +211,7 @@ export const Signup: React.FC = () => {
         </div>
 
         {/* Card */}
-        <div className="bg-white/80 backdrop-blur-md border border-slate-100 rounded-2xl shadow-xl shadow-slate-100/40 p-8 space-y-6">
+        <div className="bg-white/95 backdrop-blur-md border border-slate-100 rounded-2xl shadow-[0_28px_70px_rgba(15,23,42,0.24)] ring-1 ring-white/80 p-8 space-y-6">
 
           {/* Visual Step Process Stepper Indicator */}
           <div className="relative mb-4">
@@ -262,10 +304,10 @@ export const Signup: React.FC = () => {
             {/* Step 1 Inputs: Profile Details */}
             {step === 1 && (
               <div className="space-y-4 fade-in">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-3">
                   {/* First name */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">
                       First Name
                     </label>
                     <input
@@ -273,14 +315,28 @@ export const Signup: React.FC = () => {
                       required
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="Name"
-                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
+                      placeholder="First Name"
+                      className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-xs placeholder-slate-400"
+                    />
+                  </div>
+
+                  {/* Middle name */}
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                      Middle Name
+                    </label>
+                    <input
+                      type="text"
+                      value={middleName}
+                      onChange={(e) => setMiddleName(e.target.value)}
+                      placeholder="Optional"
+                      className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-xs placeholder-slate-400"
                     />
                   </div>
 
                   {/* Last name */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">
                       Last Name
                     </label>
                     <input
@@ -288,8 +344,8 @@ export const Signup: React.FC = () => {
                       required
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Surname"
-                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
+                      placeholder="Last Name"
+                      className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-xs placeholder-slate-400"
                     />
                   </div>
                 </div>
@@ -397,6 +453,54 @@ export const Signup: React.FC = () => {
                     );
                   })()}
                 </div>
+
+                {/* Role selection */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
+                    Account Role Type
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setRole('member')}
+                      className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all ${
+                        role === 'member'
+                          ? 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500/15'
+                          : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
+                      }`}
+                    >
+                      Library Member
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRole('admin')}
+                      className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all ${
+                        role === 'admin'
+                          ? 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500/15'
+                          : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
+                      }`}
+                    >
+                      Administrator
+                    </button>
+                  </div>
+                </div>
+
+                {/* Admin Password / Passcode */}
+                {role === 'admin' && (
+                  <div className="space-y-1.5 fade-in">
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
+                      Admin Registration Passcode
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                      placeholder="Enter secret admin passcode"
+                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
+                    />
+                  </div>
+                )}
 
                 {/* Navigation */}
                 <div className="grid grid-cols-2 gap-3 pt-2">

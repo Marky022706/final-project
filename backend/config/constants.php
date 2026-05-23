@@ -19,6 +19,14 @@ define('DB_PASS', '');
 define('FINE_RATE_PER_DAY', 5.00); // ₱5.00 per day
 define('MAX_BORROWED_BOOKS', 3);   // Max 3 books active per member
 define('BORROW_DURATION_DAYS', 14); // Borrow duration 14 days
+define('ADMIN_REGISTRATION_PASSWORD', 'admin123'); // Admin passcode
+
+// SMS Settings for password reset codes.
+// Set SMS_PROVIDER to 'semaphore' and add your API key to send real SMS messages.
+define('APP_ENV', 'local');
+define('SMS_PROVIDER', 'local');
+define('SEMAPHORE_API_KEY', '');
+define('SMS_SENDER_NAME', 'Library');
 
 // JWT Security Keys (State-of-the-art HS256 HMAC Signatures)
 define('JWT_ACCESS_SECRET', 'balingasag_public_library_access_secret_2026_super_secure_key_987654321');

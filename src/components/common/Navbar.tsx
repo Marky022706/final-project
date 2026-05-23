@@ -64,32 +64,32 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   if (!user) return null;
 
   return (
-    <header className="sticky top-0 z-35 flex items-center justify-between h-18 px-6 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm shadow-slate-100/10">
+    <header className="sticky top-0 z-35 flex items-center justify-between h-24 px-6 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm shadow-slate-200/50">
       <div className="flex items-center gap-3">
         {/* Mobile menu trigger */}
         <button
           onClick={onMenuToggle}
-          className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-xl lg:hidden focus:outline-none transition-colors"
+          className="p-2 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl lg:hidden focus:outline-none transition-colors"
           aria-label="Toggle menu"
         >
           <Menu className="h-6 w-6" />
         </button>
         
         <div>
-          <h2 className="text-sm font-semibold text-slate-800 tracking-tight leading-none mb-1">
+          <h2 className="text-base font-bold text-slate-800 tracking-tight leading-none mb-1.5">
             Balingasag Municipal Portal
           </h2>
-          <p className="text-xs text-slate-400 font-medium">Welcome back, {user.first_name}!</p>
+          <p className="text-xs text-slate-500 font-semibold">Welcome back, {user.first_name}!</p>
         </div>
       </div>
 
       <div className="flex items-center gap-4">
         {/* Real-time Clock preview */}
         <div className="hidden md:flex flex-col text-right">
-          <span className="text-xs font-semibold text-slate-600">
+          <span className="text-xs font-bold text-slate-700">
             {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
           </span>
-          <span className="text-[10px] text-slate-400 font-bold capitalize tracking-wide">
+          <span className="text-[10px] text-emerald-600 font-bold capitalize tracking-wide animate-pulse">
             Municipal Server Active
           </span>
         </div>
@@ -101,7 +101,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
               setDropdownOpen(!dropdownOpen);
               fetchNotifications();
             }}
-            className="relative p-2.5 text-slate-500 hover:text-primary-700 hover:bg-emerald-50 rounded-xl transition-all focus:outline-none"
+            className="relative p-2.5 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all focus:outline-none"
             aria-label="Notifications"
           >
             <Bell className="h-5.5 w-5.5" />

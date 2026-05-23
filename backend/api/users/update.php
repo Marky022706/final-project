@@ -23,6 +23,7 @@ if ($currentUser['role'] !== 'admin' && $userId !== $currentUser['id']) {
 }
 
 $firstName = $input['first_name'] ?? null;
+$middleName = $input['middle_name'] ?? null;
 $lastName = $input['last_name'] ?? null;
 $phone = $input['phone'] ?? null;
 $address = $input['address'] ?? null;
@@ -59,6 +60,7 @@ try {
     $stmtUpdate = $db->prepare("
         UPDATE users 
         SET first_name = :first_name,
+            middle_name = :middle_name,
             last_name = :last_name,
             phone = :phone,
             address = :address,
@@ -69,6 +71,7 @@ try {
     
     $stmtUpdate->execute([
         ':first_name' => $firstName ?? $user['first_name'],
+        ':middle_name' => $middleName ?? $user['middle_name'],
         ':last_name' => $lastName ?? $user['last_name'],
         ':phone' => $phone ?? $user['phone'],
         ':address' => $address ?? $user['address'],

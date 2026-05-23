@@ -48,7 +48,7 @@ try {
     
     $stmt = $db->prepare("
         INSERT INTO books (title, author, isbn, category, year, description, cover_image, total_copies, available_copies, status)
-        VALUES (:title, :author, :isbn, :category, :year, :description, :cover_image, :total_copies, :total_copies, :status)
+        VALUES (:title, :author, :isbn, :category, :year, :description, :cover_image, :total_copies, :available_copies, :status)
     ");
     
     $stmt->execute([
@@ -60,6 +60,7 @@ try {
         ':description' => $description,
         ':cover_image' => $coverImage,
         ':total_copies' => $totalCopies,
+        ':available_copies' => $totalCopies,
         ':status' => $status
     ]);
     

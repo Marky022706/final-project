@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS fines;
 DROP TABLE IF EXISTS transactions;
 DROP TABLE IF EXISTS books;
+DROP TABLE IF EXISTS password_reset_codes;
 DROP TABLE IF EXISTS refresh_tokens;
 DROP TABLE IF EXISTS users;
 SET FOREIGN_KEY_CHECKS = 1;
@@ -16,6 +17,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     first_name VARCHAR(100) NOT NULL,
+    middle_name VARCHAR(100) NULL,
     last_name VARCHAR(100) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
@@ -34,6 +36,18 @@ CREATE TABLE refresh_tokens (
     user_id INT NOT NULL,
     token_hash VARCHAR(255) NOT NULL UNIQUE,
     expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Password Reset Codes Table
+CREATE TABLE password_reset_codes (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    code_hash VARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -99,6 +113,8 @@ CREATE TABLE notifications (
 
 -- Create Performance Indexes
 CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_password_reset_phone ON password_reset_codes(phone);
+CREATE INDEX idx_password_reset_user_expires ON password_reset_codes(user_id, expires_at);
 CREATE INDEX idx_books_isbn ON books(isbn);
 CREATE INDEX idx_books_category ON books(category);
 CREATE INDEX idx_transactions_status ON transactions(status);

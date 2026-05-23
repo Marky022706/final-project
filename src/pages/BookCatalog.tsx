@@ -159,24 +159,24 @@ export const BookCatalog: React.FC = () => {
           <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
             <Search className="h-4.5 w-4.5" />
           </span>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by Book Title, Author name, or ISBN number..."
-            className="w-full pl-10.5 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
-          />
-        </div>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by Book Title, Author name, or ISBN number..."
+              className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
+            />
+          </div>
 
-        <div className="flex gap-3">
-          <div className="relative">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
-              <Filter className="h-4 w-4" />
-            </span>
-            <select
-              value={category}
-              onChange={(e) => handleFilterChange(e.target.value)}
-              className="pl-9.5 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm text-slate-600 appearance-none font-medium cursor-pointer"
+          <div className="flex gap-3">
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                <Filter className="h-4 w-4" />
+              </span>
+              <select
+                value={category}
+                onChange={(e) => handleFilterChange(e.target.value)}
+                className="pl-10 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm text-slate-600 appearance-none font-medium cursor-pointer"
             >
               <option value="">All Categories</option>
               {categoriesList.map((cat) => (

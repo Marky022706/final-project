@@ -8,6 +8,69 @@ import Card from '../components/common/Card';
 import { AlertTriangle, Library, ShieldAlert, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+const AdminDashboardSkeleton: React.FC = () => (
+  <div className="space-y-6 animate-pulse">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {Array.from({ length: 4 }).map((_, idx) => (
+        <Card key={idx} className="h-36 bg-white border border-slate-100">
+          <div className="flex items-start justify-between">
+            <div className="space-y-3 flex-1">
+              <div className="h-3 w-28 rounded-full bg-slate-100" />
+              <div className="h-8 w-20 rounded-lg bg-slate-100" />
+              <div className="h-3 w-36 rounded-full bg-slate-100" />
+            </div>
+            <div className="h-12 w-12 rounded-xl bg-slate-100" />
+          </div>
+        </Card>
+      ))}
+    </div>
+
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Card className="h-80 bg-white border border-slate-100">
+        <div className="h-4 w-40 rounded-full bg-slate-100 mb-6" />
+        <div className="flex h-56 items-end gap-3">
+          {[48, 72, 56, 88, 64, 96, 76].map((height, idx) => (
+            <div key={idx} className="flex-1 rounded-t-xl bg-slate-100" style={{ height }} />
+          ))}
+        </div>
+      </Card>
+      <Card className="h-80 bg-white border border-slate-100">
+        <div className="h-4 w-44 rounded-full bg-slate-100 mb-6" />
+        <div className="grid grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className="h-24 rounded-xl bg-slate-100" />
+          ))}
+        </div>
+      </Card>
+    </div>
+
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <Card className="lg:col-span-2 h-[340px] bg-white border border-slate-100">
+        <div className="h-4 w-36 rounded-full bg-slate-100 mb-8" />
+        <div className="space-y-4">
+          {Array.from({ length: 5 }).map((_, idx) => (
+            <div key={idx} className="h-10 rounded-xl bg-slate-100" />
+          ))}
+        </div>
+      </Card>
+      <Card className="h-[340px] bg-white border border-slate-100">
+        <div className="h-4 w-32 rounded-full bg-slate-100 mb-6" />
+        <div className="space-y-4">
+          {Array.from({ length: 5 }).map((_, idx) => (
+            <div key={idx} className="flex items-center justify-between gap-3">
+              <div className="space-y-2 flex-1">
+                <div className="h-3 w-3/4 rounded-full bg-slate-100" />
+                <div className="h-2.5 w-1/2 rounded-full bg-slate-100" />
+              </div>
+              <div className="h-6 w-20 rounded-full bg-slate-100" />
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  </div>
+);
+
 export const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   
@@ -75,13 +138,7 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center p-20 space-y-4">
-          <svg className="animate-spin h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-          </svg>
-          <span className="text-xs font-semibold text-slate-500">Compiling library system states...</span>
-        </div>
+        <AdminDashboardSkeleton />
       ) : (
         <>
           {/* DashboardStats component */}

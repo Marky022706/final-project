@@ -4,7 +4,8 @@ import api from '../../lib/api';
 import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
-import { BookOpen, Edit, Trash2, Plus, Info, CheckCircle, XCircle } from 'lucide-react';
+import { BookOpen, Edit, Trash2, Plus, Info, CheckCircle, XCircle, Search, Sparkles, X, Loader2 } from 'lucide-react';
+import { fetchBookByIsbn } from '../../lib/bookApi';
 
 export const AdminBooks: React.FC = () => {
   const [books, setBooks] = useState<any[]>([]);
@@ -29,6 +30,45 @@ export const AdminBooks: React.FC = () => {
 
   const [formLoading, setFormLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Automated ISBN lookup state
+  const [isbnInput, setIsbnInput] = useState('');
+  const [fetchingDetails, setFetchingDetails] = useState(false);
+  const [fetchStatus, setFetchStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  const handleFetchBookDetails = async () => {
+    const clean = isbnInput.trim().replace(/[-\s]/g, '');
+    if (!clean) {
+      setFetchStatus({ type: 'error', message: 'Please enter a valid ISBN code.' });
+      return;
+    }
+    setFetchingDetails(true);
+    setFetchStatus({ type: 'info', message: 'Searching catalog databases...' });
+    try {
+      const details = await fetchBookByIsbn(clean);
+      setFormData((prev) => ({
+        ...prev,
+        title: details.title || prev.title,
+        author: details.author || prev.author,
+        isbn: details.isbn || prev.isbn,
+        category: details.category || prev.category,
+        year: details.year || prev.year,
+        description: details.description || prev.description,
+        cover_image: details.cover_image || prev.cover_image
+      }));
+      setFetchStatus({
+        type: 'success',
+        message: `Found "${details.title}" via ${details.source === 'google' ? 'Google Books' : 'Open Library'}!`
+      });
+    } catch (err: any) {
+      setFetchStatus({
+        type: 'error',
+        message: err.message || 'Could not retrieve book details for this ISBN.'
+      });
+    } finally {
+      setFetchingDetails(false);
+    }
+  };
 
   const fetchBooks = async () => {
     setLoading(true);
@@ -58,6 +98,8 @@ export const AdminBooks: React.FC = () => {
 
   const handleOpenAdd = () => {
     setFeedback(null);
+    setIsbnInput('');
+    setFetchStatus(null);
     setFormData({
       title: '',
       author: '',
@@ -299,6 +341,65 @@ export const AdminBooks: React.FC = () => {
               <span>{feedback.message}</span>
             </div>
           )}
+
+          {/* ISBN Autofill Card */}
+          <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-2.5">
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="h-4 w-4 text-emerald-600" />
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
+                Smart Catalog via ISBN
+              </label>
+            </div>
+            <div className="flex gap-2">
+              <div className="relative flex-grow">
+                <input
+                  type="text"
+                  placeholder="Enter 10 or 13 digit ISBN (e.g. 9780743273565)"
+                  value={isbnInput}
+                  onChange={(e) => setIsbnInput(e.target.value)}
+                  className="input-field text-sm pr-8 bg-white border-slate-200"
+                />
+                {isbnInput && (
+                  <button
+                    type="button"
+                    onClick={() => setIsbnInput('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleFetchBookDetails}
+                disabled={fetchingDetails || !isbnInput.trim()}
+                className="bg-white border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex-shrink-0 py-2.5 h-auto rounded-xl shadow-sm border"
+              >
+                {fetchingDetails ? (
+                  <span className="flex items-center gap-1.5">
+                    <Loader2 className="animate-spin h-3.5 w-3.5 text-emerald-600" />
+                    Fetching...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    <Search className="h-3.5 w-3.5" />
+                    Lookup
+                  </span>
+                )}
+              </Button>
+            </div>
+            {fetchStatus && (
+              <p className={`text-[11px] font-bold flex items-center gap-1 ${
+                fetchStatus.type === 'success' ? 'text-emerald-600' : fetchStatus.type === 'info' ? 'text-emerald-600 animate-pulse' : 'text-rose-500'
+              }`}>
+                {fetchStatus.type === 'success' && <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />}
+                {fetchStatus.type === 'error' && <XCircle className="h-3.5 w-3.5 flex-shrink-0" />}
+                {fetchStatus.type === 'info' && <Loader2 className="h-3.5 w-3.5 flex-shrink-0 animate-spin" />}
+                <span>{fetchStatus.message}</span>
+              </p>
+            )}
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5 col-span-2">

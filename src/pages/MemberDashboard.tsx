@@ -16,6 +16,78 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+const MemberDashboardSkeleton: React.FC = () => (
+  <div className="space-y-6 animate-pulse">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {Array.from({ length: 4 }).map((_, idx) => (
+        <Card key={idx} className="flex flex-col justify-between h-44 p-6 bg-white border border-slate-100">
+          <div className="flex items-start justify-between">
+            <div className="space-y-3 flex-1">
+              <div className="h-3 w-32 rounded-full bg-slate-100" />
+              <div className="h-9 w-16 rounded-lg bg-slate-100" />
+            </div>
+            <div className="h-12 w-12 rounded-xl bg-slate-100" />
+          </div>
+          <div className="flex items-center justify-between border-t border-slate-50 pt-3">
+            <div className="h-3 w-36 rounded-full bg-slate-100" />
+            <div className="h-4 w-4 rounded-full bg-slate-100" />
+          </div>
+        </Card>
+      ))}
+    </div>
+
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <Card className="lg:col-span-2 min-h-[320px] bg-white border border-slate-100">
+        <div className="flex items-center justify-between border-b border-slate-50 pb-4 mb-4">
+          <div className="space-y-2">
+            <div className="h-4 w-32 rounded-full bg-slate-100" />
+            <div className="h-3 w-52 rounded-full bg-slate-100" />
+          </div>
+          <div className="h-3 w-20 rounded-full bg-slate-100" />
+        </div>
+
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, idx) => (
+            <div key={idx} className="flex items-center justify-between py-2">
+              <div className="flex items-center gap-4 flex-1">
+                <div className="h-16 w-12 rounded-lg bg-slate-100" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-4 w-2/3 rounded-full bg-slate-100" />
+                  <div className="h-3 w-1/2 rounded-full bg-slate-100" />
+                  <div className="h-2.5 w-32 rounded-full bg-slate-100" />
+                </div>
+              </div>
+              <div className="h-7 w-24 rounded-full bg-slate-100" />
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="min-h-[320px] bg-white border border-slate-100">
+        <div className="flex items-center justify-between border-b border-slate-50 pb-4 mb-4">
+          <div className="space-y-2">
+            <div className="h-4 w-28 rounded-full bg-slate-100" />
+            <div className="h-3 w-40 rounded-full bg-slate-100" />
+          </div>
+          <div className="h-3 w-16 rounded-full bg-slate-100" />
+        </div>
+
+        <div className="space-y-3">
+          {Array.from({ length: 5 }).map((_, idx) => (
+            <div key={idx} className="flex gap-2.5 items-center p-2">
+              <div className="h-11 w-9 rounded-lg bg-slate-100" />
+              <div className="space-y-2 flex-1">
+                <div className="h-3 w-4/5 rounded-full bg-slate-100" />
+                <div className="h-2.5 w-1/2 rounded-full bg-slate-100" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  </div>
+);
+
 export const MemberDashboard: React.FC = () => {
   const { user, refreshProfile } = useAuth();
   
@@ -34,7 +106,7 @@ export const MemberDashboard: React.FC = () => {
         }
 
         // Fetch new book arrivals
-        const responseNew = await api.get('/books/getAll', { params: { limit: 3 } });
+        const responseNew = await api.get('/books/getAll', { params: { limit: 5 } });
         if (responseNew.data && responseNew.data.success) {
           setNewArrivals(responseNew.data.data.books);
         }
@@ -122,29 +194,33 @@ export const MemberDashboard: React.FC = () => {
         </div>
       )}
 
+      {loading ? (
+        <MemberDashboardSkeleton />
+      ) : (
+        <>
       {/* Grid of KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {dashboardKPIs.map((kpi, idx) => {
           const Icon = kpi.icon;
           return (
             <Link key={idx} to={kpi.link}>
-              <Card hoverEffect className="flex flex-col justify-between h-36">
+              <Card hoverEffect className="flex flex-col justify-between h-44 p-6 bg-white border border-slate-100">
                 <div className="flex items-start justify-between">
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       {kpi.title}
                     </span>
-                    <h3 className="text-2xl font-extrabold text-slate-800 tracking-tight">
+                    <h3 className="text-3xl font-black text-slate-800 tracking-tight leading-none">
                       {kpi.value}
                     </h3>
                   </div>
-                  <div className={`p-2.5 rounded-xl border ${kpi.color}`}>
-                    <Icon className="h-5 w-5" />
+                  <div className={`p-3 rounded-xl border ${kpi.color} flex-shrink-0`}>
+                    <Icon className="h-6 w-6" />
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-[10px] font-semibold text-slate-400 mt-2 border-t border-slate-50 pt-2">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 mt-2 border-t border-slate-50 pt-3">
                   <span>{kpi.desc}</span>
-                  <ArrowRight className="h-3 w-3 text-emerald-500 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="h-3.5 w-3.5 text-emerald-500 transition-transform group-hover:translate-x-1" />
                 </div>
               </Card>
             </Link>
@@ -166,12 +242,7 @@ export const MemberDashboard: React.FC = () => {
           </div>
 
           <div className="flex-1 space-y-4">
-            {loading ? (
-              <div className="space-y-3 animate-pulse">
-                <div className="h-14 bg-slate-100 rounded-xl" />
-                <div className="h-14 bg-slate-100 rounded-xl" />
-              </div>
-            ) : activeLoans.length === 0 ? (
+            {activeLoans.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-slate-400 py-10">
                 <BookOpen className="h-10 w-10 text-slate-300 mb-2.5" />
                 <p className="text-xs font-semibold text-slate-500">No active book loans</p>
@@ -182,18 +253,19 @@ export const MemberDashboard: React.FC = () => {
             ) : (
               <div className="divide-y divide-slate-50">
                 {activeLoans.map((loan) => (
-                  <div key={loan.id} className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0">
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-9 bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
+                  <div key={loan.id} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-12 bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
                         {loan.cover_image && loan.cover_image.startsWith('http') ? (
                           <img src={loan.cover_image} alt={loan.title} className="h-full w-full object-cover" />
                         ) : (
-                          <BookOpen className="h-5 w-5 text-slate-400" />
+                          <BookOpen className="h-6 w-6 text-slate-400" />
                         )}
                       </div>
                       <div>
-                        <h5 className="text-xs font-bold text-slate-700 leading-snug line-clamp-1">{loan.title}</h5>
-                        <p className="text-[10px] text-slate-400">ISBN: {loan.isbn}</p>
+                        <h5 className="text-sm font-bold text-slate-800 leading-snug line-clamp-1">{loan.title}</h5>
+                        <p className="text-[11px] text-slate-500 font-semibold">Written by {loan.author} ({loan.year})</p>
+                        <p className="text-[10px] text-slate-400 font-mono mt-0.5">ISBN: {loan.isbn}</p>
                       </div>
                     </div>
 
@@ -227,12 +299,7 @@ export const MemberDashboard: React.FC = () => {
           </div>
 
           <div className="flex-1 flex flex-col justify-between space-y-4">
-            {loading ? (
-              <div className="space-y-3 animate-pulse">
-                <div className="h-10 bg-slate-100 rounded-lg" />
-                <div className="h-10 bg-slate-100 rounded-lg" />
-              </div>
-            ) : newArrivals.length === 0 ? (
+            {newArrivals.length === 0 ? (
               <div className="text-center text-slate-400 py-10 text-xs font-semibold">
                 No recent arrivals cataloged.
               </div>
@@ -264,6 +331,8 @@ export const MemberDashboard: React.FC = () => {
           </div>
         </Card>
       </div>
+        </>
+      )}
     </div>
   );
 };

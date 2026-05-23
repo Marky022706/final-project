@@ -7,11 +7,20 @@
 
 @layer base {
   :root {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif; 
   }
-  
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Outfit', sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
@@ -23,15 +32,18 @@
     width: 6px;
     height: 6px;
   }
+
   ::-webkit-scrollbar-track {
     @apply bg-slate-100;
   }
+
   ::-webkit-scrollbar-thumb {
     @apply bg-emerald-600/30 rounded-full hover:bg-emerald-600/50 transition-colors;
   }
 }
 
 @layer components {
+
   /* Premium Glassmorphic Card */
   .glass-card {
     @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-lg shadow-slate-100/40 rounded-2xl;
@@ -50,11 +62,11 @@
   .forest-gradient {
     @apply bg-gradient-to-br from-primary-900 via-primary-800 to-emerald-800;
   }
-  
+
   .emerald-gradient {
     @apply bg-gradient-to-r from-emerald-600 to-teal-600;
   }
-  
+
   /* Input Elements styling */
   .input-field {
     @apply w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/20 focus:border-primary-550 transition-all duration-200 placeholder-slate-400;
@@ -76,6 +88,7 @@
     opacity: 0;
     transform: translateY(6px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

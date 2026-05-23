@@ -24,7 +24,7 @@ try {
     $db = Database::getConnection();
     
     // Fetch profile
-    $stmt = $db->prepare("SELECT id, first_name, last_name, email, role, phone, address, status, member_since, created_at FROM users WHERE id = :id");
+    $stmt = $db->prepare("SELECT id, first_name, middle_name, last_name, email, role, phone, address, status, member_since, created_at FROM users WHERE id = :id");
     $stmt->execute([':id' => $userId]);
     $user = $stmt->fetch();
     
