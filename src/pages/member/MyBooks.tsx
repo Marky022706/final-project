@@ -1,19 +1,25 @@
-// src/pages/MyBooks.tsx
+// src/pages/member/MyBooks.tsx
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import api from '../lib/api';
-import Card from '../components/common/Card';
-import Button from '../components/common/Button';
-import { BookOpen, Calendar, AlertTriangle, Award, Info } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
+import api from '../../lib/api';
+import Card from '../../components/common/Card';
+import Button from '../../components/common/Button';
+import Modal from '../../components/common/Modal';
+import { useToast } from '../../context/ToastContext';
+import { BookOpen, Calendar, AlertTriangle, Award, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const MyBooks: React.FC = () => {
   const { refreshProfile } = useAuth();
-  
+  const toast = useToast();
+
   const [loans, setLoans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // --- Return Confirmation Modal State ---
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
+  const [returnTargetLoan, setReturnTargetLoan] = useState<any>(null);
+  const [returnLoading, setReturnLoading] = useState(false);
 
   const fetchActiveLoans = async () => {
     setLoading(true);
@@ -35,38 +41,39 @@ export const MyBooks: React.FC = () => {
     fetchActiveLoans();
   }, []);
 
-  const handleReturn = async (loan: any) => {
-    if (!confirm(`Are you ready to return "${loan.title}"? if overdue, a daily fine of ₱5.00 will be added.`)) {
-      return;
-    }
+  // --- Open Return Confirmation Modal ---
+  const openReturnModal = (loan: any) => {
+    setReturnTargetLoan(loan);
+    setReturnModalOpen(true);
+  };
 
-    setFeedback(null);
-    setActionLoadingId(loan.id);
+  const confirmReturn = async () => {
+    if (!returnTargetLoan) return;
+    setReturnLoading(true);
     try {
       const response = await api.post('/transactions/return', {
-        transaction_id: loan.transaction_id,
+        transaction_id: returnTargetLoan.transaction_id,
       });
 
       if (response.data && response.data.success) {
-        setFeedback({
-          type: 'success',
-          message: response.data.message || 'Book checked in successfully!',
-        });
-        
+        toast.success(response.data.message || 'Book checked in successfully!');
+
         // Refresh loans listing and global profile counters
         fetchActiveLoans();
         refreshProfile();
       }
     } catch (err: any) {
-      setFeedback({
-        type: 'error',
-        message: err.response?.data?.message || err.message || 'Failed to check in book copy.',
-      });
+      toast.error(err.response?.data?.message || err.message || 'Failed to check in book copy.');
     } finally {
-      setActionLoadingId(null);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setReturnLoading(false);
+      setReturnModalOpen(false);
+      setReturnTargetLoan(null);
     }
   };
+
+  // --- Derived modal values ---
+  const loanTitle = returnTargetLoan?.title || '';
+  const isOverdue = returnTargetLoan?.status === 'overdue';
 
   return (
     <div className="space-y-6 fade-in">
@@ -78,15 +85,6 @@ export const MyBooks: React.FC = () => {
           Check due dates, extend durations, and settle returns
         </p>
       </div>
-
-      {feedback && (
-        <div className={`p-4 rounded-xl flex items-start gap-2.5 text-xs font-semibold leading-relaxed border ${
-          feedback.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-600'
-        }`}>
-          <Info className="h-4.5 w-4.5 flex-shrink-0 mt-0.5" />
-          <span>{feedback.message}</span>
-        </div>
-      )}
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -119,12 +117,12 @@ export const MyBooks: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loans.map((loan) => {
-            const isOverdue = loan.status === 'overdue';
+            const isLoanOverdue = loan.status === 'overdue';
             return (
               <Card 
                 key={loan.id} 
                 className={`flex flex-col justify-between border transition-all ${
-                  isOverdue ? 'border-rose-100 bg-rose-50/10' : 'border-slate-100'
+                  isLoanOverdue ? 'border-rose-100 bg-rose-50/10' : 'border-slate-100'
                 }`}
               >
                 <div className="flex gap-4">
@@ -164,12 +162,12 @@ export const MyBooks: React.FC = () => {
                       <Calendar className="h-3.5 w-3.5 text-slate-400" />
                       Due Date:
                     </span>
-                    <span className={`font-bold ${isOverdue ? 'text-rose-600' : 'text-slate-700'}`}>
+                    <span className={`font-bold ${isLoanOverdue ? 'text-rose-600' : 'text-slate-700'}`}>
                       {new Date(loan.due_date).toLocaleDateString()}
                     </span>
                   </div>
 
-                  {isOverdue && (
+                  {isLoanOverdue && (
                     <div className="flex items-center gap-1.5 p-2 bg-rose-50 text-rose-600 rounded-lg text-[10px] font-bold border border-rose-100">
                       <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
                       <span>Overdue Loan! Daily charges of ₱5.00 active.</span>
@@ -179,10 +177,9 @@ export const MyBooks: React.FC = () => {
 
                 {/* Settle Return */}
                 <Button
-                  variant={isOverdue ? 'danger' : 'primary'}
+                  variant={isLoanOverdue ? 'danger' : 'primary'}
                   size="sm"
-                  isLoading={actionLoadingId === loan.id}
-                  onClick={() => handleReturn(loan)}
+                  onClick={() => openReturnModal(loan)}
                   className="w-full text-xs"
                 >
                   Settle Return Checkout
@@ -192,6 +189,93 @@ export const MyBooks: React.FC = () => {
           })}
         </div>
       )}
+
+      {/* ═══════════════════════════════════════════════════════════
+          SETTLE RETURN CONFIRMATION MODAL
+          ═══════════════════════════════════════════════════════════ */}
+      <Modal
+        isOpen={returnModalOpen}
+        onClose={() => { setReturnModalOpen(false); setReturnTargetLoan(null); }}
+        title="Settle Return Checkout"
+        size="sm"
+        footer={
+          <div className="flex items-center justify-center gap-3 w-full">
+            <Button
+              variant="outline"
+              onClick={() => { setReturnModalOpen(false); setReturnTargetLoan(null); }}
+              className="h-11 px-5 text-xs font-bold"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={confirmReturn}
+              disabled={returnLoading}
+              className={`h-11 px-5 text-xs font-bold text-white border-transparent ${
+                isOverdue
+                  ? 'bg-rose-600 hover:bg-rose-700'
+                  : 'bg-emerald-600 hover:bg-emerald-700'
+              }`}
+            >
+              {returnLoading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Processing...
+                </span>
+              ) : (
+                'Proceed'
+              )}
+            </Button>
+          </div>
+        }
+      >
+        <div className="flex flex-col items-center text-center space-y-4 py-2">
+          {/* Icon */}
+          <div className={`h-14 w-14 rounded-2xl border flex items-center justify-center ${
+            isOverdue
+              ? 'bg-rose-50 border-rose-100'
+              : 'bg-emerald-50 border-emerald-100'
+          }`}>
+            <RotateCcw className={`h-7 w-7 ${isOverdue ? 'text-rose-500' : 'text-emerald-500'}`} />
+          </div>
+
+          {/* Prompt */}
+          <div>
+            <p className="text-sm font-bold text-slate-800 leading-snug">
+              Are you ready to return
+            </p>
+            <p className="text-base font-extrabold text-slate-900 mt-1">
+              "{loanTitle}"
+            </p>
+            {isOverdue && (
+              <p className="text-sm font-bold text-rose-600 mt-1">
+                If overdue, a daily fine of ₱5.00 will be added.
+              </p>
+            )}
+          </div>
+
+          {/* Warning / Info Callout */}
+          <div className={`flex items-start gap-2.5 border rounded-xl p-3 text-left w-full ${
+            isOverdue
+              ? 'bg-rose-50/80 border-rose-100'
+              : 'bg-amber-50/80 border-amber-100'
+          }`}>
+            <AlertTriangle className={`h-4 w-4 flex-shrink-0 mt-0.5 ${
+              isOverdue ? 'text-rose-500' : 'text-amber-500'
+            }`} />
+            <p className={`text-[11px] font-semibold leading-relaxed ${
+              isOverdue ? 'text-rose-700' : 'text-amber-700'
+            }`}>
+              {isOverdue
+                ? 'This book is past its due date. Returning it now will finalize any accumulated overdue fines on your account.'
+                : 'This will settle the return and make the book copy available for other library members to borrow.'}
+            </p>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

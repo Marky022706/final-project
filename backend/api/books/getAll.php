@@ -27,8 +27,11 @@ try {
     $params = [];
     
     if (!empty($search)) {
-        $whereClauses[] = "(title LIKE :search OR author LIKE :search OR isbn LIKE :search)";
-        $params[':search'] = '%' . $search . '%';
+        $whereClauses[] = "(title LIKE :search_title OR author LIKE :search_author OR isbn LIKE :search_isbn)";
+        $searchVal = '%' . $search . '%';
+        $params[':search_title'] = $searchVal;
+        $params[':search_author'] = $searchVal;
+        $params[':search_isbn'] = $searchVal;
     }
     
     if (!empty($category)) {

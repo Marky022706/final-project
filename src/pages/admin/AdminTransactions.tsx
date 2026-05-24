@@ -3,13 +3,20 @@ import React, { useState, useEffect } from 'react';
 import api from '../../lib/api';
 import DataTable from '../../components/common/DataTable';
 import Button from '../../components/common/Button';
-import { Calendar, BookOpen, User, CheckCircle } from 'lucide-react';
+import Modal from '../../components/common/Modal';
+import { useToast } from '../../context/ToastContext';
+import { Calendar, BookOpen, User, CheckCircle, RotateCcw, AlertTriangle } from 'lucide-react';
 
 export const AdminTransactions: React.FC = () => {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('');
-  const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
+  const toast = useToast();
+
+  // --- Return Confirmation Modal State ---
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
+  const [returnTargetLoan, setReturnTargetLoan] = useState<any>(null);
+  const [returnLoading, setReturnLoading] = useState(false);
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -31,26 +38,36 @@ export const AdminTransactions: React.FC = () => {
     fetchTransactions();
   }, [filterStatus]);
 
-  const handleManualReturn = async (loan: any) => {
-    if (!confirm(`Confirm manual checkout return processing for "${loan.title}" borrowed by member ${loan.first_name} ${loan.last_name}?`)) {
-      return;
-    }
+  // --- Open Return Confirmation Modal ---
+  const openReturnModal = (loan: any) => {
+    setReturnTargetLoan(loan);
+    setReturnModalOpen(true);
+  };
 
-    setActionLoadingId(loan.id);
+  const confirmManualReturn = async () => {
+    if (!returnTargetLoan) return;
+    setReturnLoading(true);
     try {
       const response = await api.post('/transactions/return', {
-        transaction_id: loan.transaction_id
+        transaction_id: returnTargetLoan.transaction_id
       });
       if (response.data && response.data.success) {
         fetchTransactions();
-        alert(response.data.message || 'Book checked in successfully!');
+        toast.success(response.data.message || 'Book checked in successfully!');
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message || 'Failed to complete book return checkout.');
+      toast.error(err.response?.data?.message || err.message || 'Failed to complete book return checkout.');
     } finally {
-      setActionLoadingId(null);
+      setReturnLoading(false);
+      setReturnModalOpen(false);
+      setReturnTargetLoan(null);
     }
   };
+
+  // --- Derived modal values ---
+  const loanTitle = returnTargetLoan?.title || '';
+  const loanMember = returnTargetLoan ? `${returnTargetLoan.first_name} ${returnTargetLoan.last_name}` : '';
+  const isOverdue = returnTargetLoan?.status === 'overdue';
 
   const columns = [
     {
@@ -134,8 +151,7 @@ export const AdminTransactions: React.FC = () => {
           <Button
             variant={row.status === 'overdue' ? 'danger' : 'primary'}
             size="sm"
-            isLoading={actionLoadingId === row.id}
-            onClick={() => handleManualReturn(row)}
+            onClick={() => openReturnModal(row)}
             className="text-[10px] py-1.5 px-3"
             title="Mark this book copy as returned by the member"
           >
@@ -193,6 +209,91 @@ export const AdminTransactions: React.FC = () => {
           itemsPerPage={10}
         />
       )}
+
+      {/* ═══════════════════════════════════════════════════════════
+          PROCESS RETURN CONFIRMATION MODAL
+          ═══════════════════════════════════════════════════════════ */}
+      <Modal
+        isOpen={returnModalOpen}
+        onClose={() => { setReturnModalOpen(false); setReturnTargetLoan(null); }}
+        title="Confirm Return Processing"
+        size="sm"
+        footer={
+          <div className="flex items-center justify-center gap-3 w-full">
+            <Button
+              variant="outline"
+              onClick={() => { setReturnModalOpen(false); setReturnTargetLoan(null); }}
+              className="h-11 px-5 text-xs font-bold"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={confirmManualReturn}
+              disabled={returnLoading}
+              className={`h-11 px-5 text-xs font-bold text-white border-transparent ${
+                isOverdue
+                  ? 'bg-rose-600 hover:bg-rose-700'
+                  : 'bg-emerald-600 hover:bg-emerald-700'
+              }`}
+            >
+              {returnLoading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Processing...
+                </span>
+              ) : (
+                'Proceed'
+              )}
+            </Button>
+          </div>
+        }
+      >
+        <div className="flex flex-col items-center text-center space-y-4 py-2">
+          {/* Icon */}
+          <div className={`h-14 w-14 rounded-2xl border flex items-center justify-center ${
+            isOverdue
+              ? 'bg-rose-50 border-rose-100'
+              : 'bg-emerald-50 border-emerald-100'
+          }`}>
+            <RotateCcw className={`h-7 w-7 ${isOverdue ? 'text-rose-500' : 'text-emerald-500'}`} />
+          </div>
+
+          {/* Prompt */}
+          <div>
+            <p className="text-sm font-bold text-slate-800 leading-snug">
+              Confirm manual checkout return processing for
+            </p>
+            <p className="text-base font-extrabold text-slate-900 mt-1">
+              "{loanTitle}"
+            </p>
+            <p className="text-sm font-bold text-slate-800 mt-1">
+              borrowed by member <span className="font-extrabold text-slate-900">{loanMember}</span>?
+            </p>
+          </div>
+
+          {/* Warning / Info Callout */}
+          <div className={`flex items-start gap-2.5 border rounded-xl p-3 text-left w-full ${
+            isOverdue
+              ? 'bg-rose-50/80 border-rose-100'
+              : 'bg-amber-50/80 border-amber-100'
+          }`}>
+            <AlertTriangle className={`h-4 w-4 flex-shrink-0 mt-0.5 ${
+              isOverdue ? 'text-rose-500' : 'text-amber-500'
+            }`} />
+            <p className={`text-[11px] font-semibold leading-relaxed ${
+              isOverdue ? 'text-rose-700' : 'text-amber-700'
+            }`}>
+              {isOverdue
+                ? 'This loan is overdue. Processing this return may trigger applicable late fees for the borrower.'
+                : 'This action will mark the book as returned and make the copy available for other members to borrow.'}
+            </p>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

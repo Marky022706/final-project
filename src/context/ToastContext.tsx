@@ -74,7 +74,12 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         message.includes('react-dom') ||
         message.includes('react-router') ||
         message.includes('recharts') ||
-        message.includes('Download the React DevTools')
+        message.includes('Download the React DevTools') ||
+        message.includes('Google Books API failed') ||
+        message.includes('Failed to load public stats') ||
+        message.includes('Login Process Failure') ||
+        message.includes('Session validation failed') ||
+        message.includes('Request failed with status code 401')
       ) {
         return;
       }

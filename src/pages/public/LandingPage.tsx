@@ -1,19 +1,20 @@
-// src/pages/LandingPage.tsx
+// src/pages/public/LandingPage.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { Book, Library, Search, Clock, ShieldCheck, HelpCircle, MessageSquare, Mail, Phone, ChevronLeft, ChevronRight, Filter, Menu, X } from 'lucide-react';
-import api from '../lib/api';
-import BookCard from '../components/common/BookCard';
-import type { BookItem } from '../components/common/BookCard';
-import Modal from '../components/common/Modal';
-import logoImg from '../assets/logo.png';
-import heroBgImg from '../assets/hero-bg.jpg';
-import about1 from '../assets/about-1.jpg';
-import about2 from '../assets/about-2.jpg';
-import about3 from '../assets/about-3.jpg';
-import about4 from '../assets/about-4.jpg';
-import about5 from '../assets/about-5.jpg';
+import api from '../../lib/api';
+import BookCard from '../../components/common/BookCard';
+import type { BookItem } from '../../components/common/BookCard';
+import Modal from '../../components/common/Modal';
+import Button from '../../components/common/Button';
+import logoImg from '../../assets/logo.png';
+import heroBgImg from '../../assets/hero-bg.jpg';
+import about1 from '../../assets/about-1.jpg';
+import about2 from '../../assets/about-2.jpg';
+import about3 from '../../assets/about-3.jpg';
+import about4 from '../../assets/about-4.jpg';
+import about5 from '../../assets/about-5.jpg';
 
 // Animated counter hook — counts from 0 to target when element is visible
 const useAnimatedCounter = (target: number, duration = 2000) => {
@@ -128,6 +129,8 @@ export const LandingPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+
+
   const categoriesList = [
     'Fiction',
     'Science',
@@ -188,22 +191,11 @@ export const LandingPage: React.FC = () => {
     fetchCatalog();
   }, [page, category]);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (page === 1) {
-      // Already on page 1, effect won't re-trigger from setPage, so fetch directly
-      fetchCatalog();
-    } else {
-      setPage(1); // This triggers the useEffect which calls fetchCatalog
-    }
-  };
-
   const handleFilterChange = (catVal: string) => {
     setCategory(catVal);
     if (page !== 1) {
       setPage(1);
     }
-    // The useEffect with [page, category] will automatically re-fetch
   };
 
   // Prevent body scrolling when mobile menu is open
@@ -217,6 +209,19 @@ export const LandingPage: React.FC = () => {
       document.body.style.overflow = 'unset';
     };
   }, [mobileMenuOpen]);
+
+  // Live search: debounced catalog fetch on every keystroke (instant filtering like DataTable)
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (page === 1) {
+        fetchCatalog();
+      } else {
+        setPage(1);
+      }
+    }, 350);
+
+    return () => clearTimeout(delayDebounce);
+  }, [search]);
 
   return (
     <div id="home" className="min-h-screen bg-slate-50 gradient-bg flex flex-col scroll-smooth overflow-x-clip">
@@ -457,8 +462,8 @@ export const LandingPage: React.FC = () => {
 
       {/* Info values banner */}
       <section id="quick-info" className="max-w-7xl mx-auto w-full px-6 -mt-8 relative z-20 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/40 rounded-2xl p-6 flex gap-4">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 flex-shrink-0">
+        <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/40 rounded-2xl p-6 flex gap-4 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-100/30 hover:border-emerald-200 transition-all duration-300 group">
+          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 flex-shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
             <Clock className="h-6 w-6" />
           </div>
           <div>
@@ -470,8 +475,8 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/40 rounded-2xl p-6 flex gap-4">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 flex-shrink-0">
+        <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/40 rounded-2xl p-6 flex gap-4 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-100/30 hover:border-emerald-200 transition-all duration-300 group">
+          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 flex-shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
             <ShieldCheck className="h-6 w-6" />
           </div>
           <div>
@@ -482,8 +487,8 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/40 rounded-2xl p-6 flex gap-4">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 flex-shrink-0">
+        <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/40 rounded-2xl p-6 flex gap-4 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-100/30 hover:border-emerald-200 transition-all duration-300 group">
+          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 flex-shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
             <HelpCircle className="h-6 w-6" />
           </div>
           <div>
@@ -507,8 +512,8 @@ export const LandingPage: React.FC = () => {
         </div>
 
         {/* Search and filter controls */}
-        <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-4 bg-white/70 backdrop-blur-md p-4 rounded-2xl border border-slate-100 shadow-sm shadow-slate-100/10">
-          <div className="relative flex-1">
+        <div className="flex flex-col sm:flex-row gap-4 bg-white/70 backdrop-blur-md p-4 rounded-2xl border border-slate-100 shadow-sm shadow-slate-100/10 justify-center w-full max-w-4xl mx-auto sm:items-center">
+          <div className="relative w-full sm:w-[550px]">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
               <Search className="h-4.5 w-4.5" />
             </span>
@@ -517,11 +522,11 @@ export const LandingPage: React.FC = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by Book Title, Author name, or ISBN number..."
-              className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
+              className="w-full h-11 pl-12 pr-4 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
             />
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                 <Filter className="h-4 w-4" />
@@ -529,7 +534,7 @@ export const LandingPage: React.FC = () => {
               <select
                 value={category}
                 onChange={(e) => handleFilterChange(e.target.value)}
-                className="pl-10 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm text-slate-600 appearance-none font-medium cursor-pointer"
+                className="pl-10 pr-8 h-11 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm text-slate-600 appearance-none font-medium cursor-pointer"
               >
                 <option value="">All Categories</option>
                 {categoriesList.map((cat) => (
@@ -538,15 +543,11 @@ export const LandingPage: React.FC = () => {
               </select>
               <span className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400 text-[10px] font-bold">▼</span>
             </div>
-
-            <button type="submit" className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition-colors">
-              Query Shelves
-            </button>
           </div>
-        </form>
+        </div>
 
         {/* Books grid layout */}
-        {catalogLoading ? (
+        {catalogLoading && featuredBooks.length === 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, idx) => (
               <div key={idx} className="bg-white border border-slate-100 rounded-2xl p-5 space-y-4 animate-pulse">
@@ -562,7 +563,7 @@ export const LandingPage: React.FC = () => {
               </div>
             ))}
           </div>
-        ) : featuredBooks.length === 0 ? (
+        ) : !catalogLoading && featuredBooks.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-18 border border-dashed border-slate-200 rounded-3xl bg-white/40 text-slate-400">
             <Book className="h-12 w-12 text-slate-300 mb-3" />
             <h4 className="text-sm font-bold text-slate-600">No books found</h4>
@@ -571,7 +572,7 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-300 ease-in-out ${catalogLoading ? 'opacity-50 scale-[0.99] pointer-events-none' : 'opacity-100 scale-100'}`}>
             {featuredBooks.map((book) => (
               <BookCard
                 key={book.id}
@@ -611,6 +612,28 @@ export const LandingPage: React.FC = () => {
         isOpen={!!selectedBook}
         onClose={() => setSelectedBook(null)}
         title="Book Profile Details"
+        footer={
+          selectedBook && (
+            <div className="flex items-center gap-3 w-full justify-between">
+              <Button
+                variant="outline"
+                onClick={() => setSelectedBook(null)}
+                className="h-11 px-5 text-xs font-bold"
+              >
+                Dismiss
+              </Button>
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] font-bold text-slate-400">Want to borrow this book?</span>
+                <Link
+                  to="/login"
+                  className="inline-flex h-11 items-center justify-center px-5 bg-gradient-to-r from-emerald-600 to-primary-700 hover:from-emerald-700 hover:to-primary-800 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-100 transition-all"
+                >
+                  Sign In to Borrow
+                </Link>
+              </div>
+            </div>
+          )
+        }
       >
         {selectedBook && (
           <div className="space-y-6">
@@ -667,16 +690,6 @@ export const LandingPage: React.FC = () => {
               <p className="text-xs text-slate-500 leading-relaxed bg-slate-50 border border-slate-100/50 p-4 rounded-xl">
                 {selectedBook.description || 'No summary overview currently cataloged for this book.'}
               </p>
-            </div>
-
-            <div className="flex items-center gap-3 border-t border-slate-100 pt-4.5 justify-end">
-              <span className="text-xs font-semibold text-slate-400">Want to borrow this book?</span>
-              <Link
-                to="/login"
-                className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-primary-700 hover:from-emerald-700 hover:to-primary-800 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-100 transition-all duration-150"
-              >
-                Sign In to Borrow
-              </Link>
             </div>
           </div>
         )}

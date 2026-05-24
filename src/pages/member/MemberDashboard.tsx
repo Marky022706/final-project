@@ -1,9 +1,9 @@
-// src/pages/MemberDashboard.tsx
+// src/pages/member/MemberDashboard.tsx
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import api from '../lib/api';
-import Card from '../components/common/Card';
-import Button from '../components/common/Button';
+import { useAuth } from '../../hooks/useAuth';
+import api from '../../lib/api';
+import Card from '../../components/common/Card';
+import Button from '../../components/common/Button';
 import { 
   BookMarked, 
   Wallet, 

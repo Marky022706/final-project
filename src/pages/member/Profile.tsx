@@ -1,8 +1,8 @@
-// src/pages/Profile.tsx
+// src/pages/member/Profile.tsx
 import React, { useState } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import Card from '../components/common/Card';
-import Button from '../components/common/Button';
+import { useAuth } from '../../hooks/useAuth';
+import Card from '../../components/common/Card';
+import Button from '../../components/common/Button';
 import { User, Phone, MapPin, Mail, Calendar, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 export const Profile: React.FC = () => {

@@ -1,8 +1,8 @@
-// src/pages/Notifications.tsx
+// src/pages/member/Notifications.tsx
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import api from '../lib/api';
-import Button from '../components/common/Button';
+import { useAuth } from '../../hooks/useAuth';
+import api from '../../lib/api';
+import Button from '../../components/common/Button';
 import { Bell, Check, AlertTriangle, Calendar, CheckCircle } from 'lucide-react';
 
 export const Notifications: React.FC = () => {

@@ -81,7 +81,7 @@ export const Modal: React.FC<ModalProps> = ({
             </div>
           ) : (
             <div className="px-6 pt-4.5 pb-6 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
-              <Button variant="outline" size="sm" onClick={onClose}>
+              <Button variant="outline" onClick={onClose} className="h-11 px-5 text-xs font-bold">
                 Dismiss
               </Button>
             </div>

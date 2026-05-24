@@ -1,10 +1,10 @@
-// src/pages/AdminDashboard.tsx
+// src/pages/admin/AdminDashboard.tsx
 import React, { useState, useEffect } from 'react';
-import api from '../lib/api';
-import DashboardStats from '../components/admin/DashboardStats';
-import ReportsChart from '../components/admin/ReportsChart';
-import OverdueChart from '../components/admin/OverdueChart';
-import Card from '../components/common/Card';
+import api from '../../lib/api';
+import DashboardStats from '../../components/admin/DashboardStats';
+import ReportsChart from '../../components/admin/ReportsChart';
+import OverdueChart from '../../components/admin/OverdueChart';
+import Card from '../../components/common/Card';
 import { AlertTriangle, Library, ShieldAlert, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 

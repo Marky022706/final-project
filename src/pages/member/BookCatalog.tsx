@@ -1,11 +1,11 @@
-// src/pages/BookCatalog.tsx
+// src/pages/member/BookCatalog.tsx
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import api from '../lib/api';
-import BookCard from '../components/common/BookCard';
-import type { BookItem } from '../components/common/BookCard';
-import Modal from '../components/common/Modal';
-import Button from '../components/common/Button';
+import { useAuth } from '../../hooks/useAuth';
+import api from '../../lib/api';
+import BookCard from '../../components/common/BookCard';
+import type { BookItem } from '../../components/common/BookCard';
+import Modal from '../../components/common/Modal';
+import Button from '../../components/common/Button';
 import { Search, Info, Filter, Book, BookMarked, CheckCircle } from 'lucide-react';
 
 export const BookCatalog: React.FC = () => {
@@ -18,6 +18,8 @@ export const BookCatalog: React.FC = () => {
   const [selectedBook, setSelectedBook] = useState<BookItem | null>(null);
   const [borrowConfirmBook, setBorrowConfirmBook] = useState<BookItem | null>(null);
   const [successModalData, setSuccessModalData] = useState<{ title: string; dueDate: string } | null>(null);
+
+
 
   const [borrowLoadingId, setBorrowLoadingId] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -53,12 +55,15 @@ export const BookCatalog: React.FC = () => {
     fetchCatalog();
   }, [page]);
 
-  // Reset page and trigger fetch on search/filter changes
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1);
-    fetchCatalog();
-  };
+  // Live search: debounced catalog fetch on every keystroke (instant filtering like DataTable)
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      setPage(1);
+      fetchCatalog();
+    }, 350);
+
+    return () => clearTimeout(delayDebounce);
+  }, [search]);
 
   const handleFilterChange = (catVal: string) => {
     setCategory(catVal);
@@ -156,7 +161,7 @@ export const BookCatalog: React.FC = () => {
       )}
 
       {/* Search and filter controls */}
-      <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-4 bg-white/70 backdrop-blur-md p-4 rounded-2xl border border-slate-100 shadow-sm shadow-slate-100/10">
+      <div className="flex flex-col sm:flex-row gap-4 bg-white/70 backdrop-blur-md p-4 rounded-2xl border border-slate-100 shadow-sm shadow-slate-100/10 sm:items-center">
         <div className="relative flex-1">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
             <Search className="h-4.5 w-4.5" />
@@ -166,11 +171,11 @@ export const BookCatalog: React.FC = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by Book Title, Author name, or ISBN number..."
-              className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
+              className="w-full h-11 pl-12 pr-4 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
             />
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                 <Filter className="h-4 w-4" />
@@ -178,24 +183,20 @@ export const BookCatalog: React.FC = () => {
               <select
                 value={category}
                 onChange={(e) => handleFilterChange(e.target.value)}
-                className="pl-10 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm text-slate-600 appearance-none font-medium cursor-pointer"
-            >
-              <option value="">All Categories</option>
-              {categoriesList.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-            <span className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400 text-[10px] font-bold">▼</span>
+                className="pl-10 pr-8 h-11 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm text-slate-600 appearance-none font-medium cursor-pointer"
+              >
+                <option value="">All Categories</option>
+                {categoriesList.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+              <span className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400 text-[10px] font-bold">▼</span>
+            </div>
           </div>
-
-          <Button type="submit" variant="primary" size="md" className="text-xs px-5">
-            Query Shelves
-          </Button>
-        </div>
-      </form>
+      </div>
 
       {/* Books grid layout */}
-      {loading ? (
+      {loading && books.length === 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {Array.from({ length: 8 }).map((_, idx) => (
             <div key={idx} className="bg-white border border-slate-100 rounded-2xl p-5 space-y-4 animate-pulse">
@@ -211,7 +212,7 @@ export const BookCatalog: React.FC = () => {
             </div>
           ))}
         </div>
-      ) : books.length === 0 ? (
+      ) : !loading && books.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-18 border border-dashed border-slate-200 rounded-3xl bg-white/40 text-slate-400">
           <Book className="h-12 w-12 text-slate-300 mb-3" />
           <h4 className="text-sm font-bold text-slate-600">No books found</h4>
@@ -220,7 +221,7 @@ export const BookCatalog: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-300 ease-in-out ${loading ? 'opacity-50 scale-[0.99] pointer-events-none' : 'opacity-100 scale-100'}`}>
           {books.map((book) => (
             <BookCard
               key={book.id}
@@ -261,6 +262,32 @@ export const BookCatalog: React.FC = () => {
         isOpen={!!selectedBook}
         onClose={() => setSelectedBook(null)}
         title="Book Profile Details"
+        footer={
+          selectedBook && (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setSelectedBook(null)}
+                className="h-11 px-5 text-xs font-bold"
+              >
+                Dismiss
+              </Button>
+              <Button
+                variant="primary"
+                disabled={selectedBook.available_copies <= 0 || selectedBook.status === 'unavailable'}
+                isLoading={borrowLoadingId === selectedBook.id}
+                onClick={() => {
+                  const bk = selectedBook;
+                  setSelectedBook(null);
+                  setBorrowConfirmBook(bk);
+                }}
+                className="h-11 px-6 text-xs font-bold"
+              >
+                Borrow Book Copy
+              </Button>
+            </>
+          )
+        }
       >
         {selectedBook && (
           <div className="space-y-6">
@@ -318,25 +345,6 @@ export const BookCatalog: React.FC = () => {
                 {selectedBook.description || 'No summary overview currently cataloged for this book.'}
               </p>
             </div>
-
-            <div className="flex items-center gap-3 border-t border-slate-100 pt-4.5 justify-end">
-              <Button variant="outline" size="sm" onClick={() => setSelectedBook(null)}>
-                Dismiss
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                disabled={selectedBook.available_copies <= 0 || selectedBook.status === 'unavailable'}
-                isLoading={borrowLoadingId === selectedBook.id}
-                onClick={() => {
-                  const bk = selectedBook;
-                  setSelectedBook(null);
-                  setBorrowConfirmBook(bk);
-                }}
-              >
-                Borrow Book Copy
-              </Button>
-            </div>
           </div>
         )}
       </Modal>
@@ -351,20 +359,20 @@ export const BookCatalog: React.FC = () => {
             <>
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => setBorrowConfirmBook(null)}
+                className="h-11 px-5 text-xs font-bold"
               >
                 Cancel
               </Button>
               <Button
                 variant="primary"
-                size="sm"
                 isLoading={borrowLoadingId === borrowConfirmBook.id}
                 onClick={async () => {
                   const bk = borrowConfirmBook;
                   setBorrowConfirmBook(null);
                   await handleQuickBorrow(bk);
                 }}
+                className="h-11 px-6 text-xs font-bold"
               >
                 Proceed
               </Button>
@@ -407,8 +415,16 @@ export const BookCatalog: React.FC = () => {
         isOpen={!!successModalData}
         onClose={() => setSuccessModalData(null)}
         title="Checkout Successful"
-        showFooter={false}
         size="sm"
+        footer={
+          <Button
+            variant="primary"
+            onClick={() => setSuccessModalData(null)}
+            className="w-full h-11 text-xs font-bold"
+          >
+            Excellent, Understood
+          </Button>
+        }
       >
         {successModalData && (
           <div className="space-y-5 text-center px-4 pt-4 pb-8">

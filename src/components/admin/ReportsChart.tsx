@@ -45,7 +45,7 @@ export const ReportsChart: React.FC<ChartProps> = ({ categoriesData, booksData }
               No categories statistics available yet.
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <PieChart>
                 <Pie
                   data={categoriesData}
@@ -97,7 +97,7 @@ export const ReportsChart: React.FC<ChartProps> = ({ categoriesData, booksData }
               No book borrowings recorded yet.
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <BarChart
                 data={booksData}
                 margin={{ top: 10, right: 10, left: -25, bottom: 25 }}

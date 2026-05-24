@@ -1,11 +1,11 @@
-// src/pages/Signup.tsx
+// src/pages/auth/Signup.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 import { ArrowLeft, AlertCircle, User, Lock, Shield, ChevronLeft, ChevronRight, Check, Eye, EyeOff, X } from 'lucide-react';
-import api from '../lib/api';
-import Button from '../components/common/Button';
-import logoImg from '../assets/logo.png';
+import api from '../../lib/api';
+import Button from '../../components/common/Button';
+import logoImg from '../../assets/logo.png';
 
 export const Signup: React.FC = () => {
   const { login, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -24,8 +24,6 @@ export const Signup: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
-  const [role, setRole] = useState<'member' | 'admin'>('member');
-  const [adminPassword, setAdminPassword] = useState('');
 
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,13 +106,24 @@ export const Signup: React.FC = () => {
       setError('Last Name cannot contain numbers.');
       return;
     }
-    if (address && isNumericOnly(address)) {
-      setError('Address cannot consist of numbers only.');
+    if (!phone.trim()) {
+      setError('Phone number is required.');
       return;
     }
-    // Validate phone number digits if entered
-    if (phone && !/^\d+$/.test(phone)) {
+    if (!/^\d+$/.test(phone)) {
       setError('Phone number must contain numbers only.');
+      return;
+    }
+    if (phone.length !== 11) {
+      setError('Phone number must be exactly 11 digits.');
+      return;
+    }
+    if (!address.trim()) {
+      setError('Home Barangay Address is required.');
+      return;
+    }
+    if (isNumericOnly(address)) {
+      setError('Address cannot consist of numbers only.');
       return;
     }
     setStep(2);
@@ -136,10 +145,6 @@ export const Signup: React.FC = () => {
       setError('Password must be at least 6 characters long for account security.');
       return;
     }
-    if (role === 'admin' && !adminPassword.trim()) {
-      setError('Please enter the Admin Registration Passcode.');
-      return;
-    }
     setStep(3);
   };
 
@@ -148,8 +153,8 @@ export const Signup: React.FC = () => {
     setError(null);
 
     // Double check step validations
-    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password) {
-      setError('Please fill in all required profile and security fields.');
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password || !phone.trim() || !address.trim()) {
+      setError('Please fill in all profile and security fields.');
       return;
     }
 
@@ -157,13 +162,12 @@ export const Signup: React.FC = () => {
       setError('First Name, Middle Name, and Last Name cannot contain numbers.');
       return;
     }
-    if (address && isNumericOnly(address)) {
-      setError('Address cannot consist of numbers only.');
+    if (!/^\d{11}$/.test(phone)) {
+      setError('Phone number must be exactly 11 digits.');
       return;
     }
-
-    if (role === 'admin' && !adminPassword.trim()) {
-      setError('Please enter the Admin Registration Passcode.');
+    if (isNumericOnly(address)) {
+      setError('Address cannot consist of numbers only.');
       return;
     }
 
@@ -181,10 +185,9 @@ export const Signup: React.FC = () => {
         last_name: lastName.trim(),
         email: email.trim(),
         password,
-        phone: phone.trim() || undefined,
-        address: address.trim() || undefined,
-        role: role,
-        admin_password: role === 'admin' ? adminPassword : undefined,
+        phone: phone.trim(),
+        address: address.trim(),
+        role: 'member',
       });
 
       if (response.data && response.data.success) {
@@ -260,7 +263,7 @@ export const Signup: React.FC = () => {
                       : 'bg-white border-slate-200 text-slate-400 cursor-not-allowed'
                     }`}
                 >
-                  {step > 1 ? <Check className="h-5 w-5 stroke-[2.5]" /> : <User className="h-5 w-5" />}
+                  {step > 1 ? <Check className="h-5 w-5 stroke-[2.5]" strokeWidth={2.5} /> : <User className="h-5 w-5" />}
                 </button>
                 <span className={`text-[10px] font-bold mt-2 uppercase tracking-wider transition-colors duration-200 ${step === 1 ? 'text-emerald-600 font-extrabold' : 'text-slate-400 font-semibold'
                   }`}>Profile</span>
@@ -279,7 +282,7 @@ export const Signup: React.FC = () => {
                       : 'bg-white border-slate-200 text-slate-400 cursor-not-allowed'
                     }`}
                 >
-                  {step > 2 ? <Check className="h-5 w-5 stroke-[2.5]" /> : <Lock className="h-5 w-5" />}
+                  {step > 2 ? <Check className="h-5 w-5 stroke-[2.5]" strokeWidth={2.5} /> : <Lock className="h-5 w-5" />}
                 </button>
                 <span className={`text-[10px] font-bold mt-2 uppercase tracking-wider transition-colors duration-200 ${step === 2 ? 'text-emerald-600 font-extrabold' : 'text-slate-400 font-semibold'
                   }`}>Security</span>
@@ -393,33 +396,45 @@ export const Signup: React.FC = () => {
                 {/* Phone */}
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
-                    Phone Number (Optional)
+                    Phone Number <span className="text-rose-400">*</span>
                   </label>
                   <input
                     type="text"
+                    required
+                    maxLength={11}
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Phone Number (Numbers only)"
-                    className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 text-sm placeholder-slate-400 ${phone && !/^\d+$/.test(phone)
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 11);
+                      setPhone(val);
+                    }}
+                    placeholder="e.g. 09123456789"
+                    className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 text-sm placeholder-slate-400 ${phone && (!/^\d+$/.test(phone) || phone.length !== 11)
                       ? 'border-rose-500 focus:ring-rose-500/15 focus:border-rose-500'
                       : 'border-slate-200 focus:ring-primary-550/15 focus:border-primary-550'
                       }`}
                   />
                   {phone && !/^\d+$/.test(phone) && (
-                    <p className="text-[10px] text-rose-500 font-semibold mt-1">Invalid: Phone must contain numbers only</p>
+                    <p className="text-[10px] text-rose-500 font-semibold mt-1">Phone must contain numbers only</p>
+                  )}
+                  {phone && /^\d+$/.test(phone) && phone.length !== 11 && (
+                    <p className="text-[10px] text-rose-500 font-semibold mt-1">Phone number must be exactly 11 digits ({phone.length}/11)</p>
+                  )}
+                  {phone && /^\d{11}$/.test(phone) && (
+                    <p className="text-[10px] text-emerald-600 font-semibold mt-1">✓ Valid phone number</p>
                   )}
                 </div>
 
                 {/* Address */}
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
-                    Home Barangay Address
+                    Home Barangay Address <span className="text-rose-400">*</span>
                   </label>
                   <input
                     type="text"
+                    required
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Address"
+                    placeholder="e.g. Brgy. Poblacion, Balingasag"
                     className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
                   />
                 </div>
@@ -500,51 +515,6 @@ export const Signup: React.FC = () => {
                   })()}
                 </div>
 
-                {/* Role selection */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
-                    Account Role Type
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setRole('member')}
-                      className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all ${role === 'member'
-                        ? 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500/15'
-                        : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
-                        }`}
-                    >
-                      Library Member
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setRole('admin')}
-                      className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all ${role === 'admin'
-                        ? 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500/15'
-                        : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
-                        }`}
-                    >
-                      Administrator
-                    </button>
-                  </div>
-                </div>
-
-                {/* Admin Password / Passcode */}
-                {role === 'admin' && (
-                  <div className="space-y-1.5 fade-in">
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
-                      Admin Registration Passcode
-                    </label>
-                    <input
-                      type="password"
-                      required
-                      value={adminPassword}
-                      onChange={(e) => setAdminPassword(e.target.value)}
-                      placeholder="Enter secret admin passcode"
-                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
-                    />
-                  </div>
-                )}
 
                 {/* Navigation */}
                 <div className="grid grid-cols-2 gap-3 pt-2">

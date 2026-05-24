@@ -1,7 +1,7 @@
-// src/pages/Fines.tsx
+// src/pages/member/Fines.tsx
 import React from 'react';
-import useFetch from '../hooks/useFetch';
-import Card from '../components/common/Card';
+import useFetch from '../../hooks/useFetch';
+import Card from '../../components/common/Card';
 import { Wallet, AlertCircle, Calendar, CheckCircle2, Coins, ArrowRight } from 'lucide-react';
 
 export const Fines: React.FC = () => {

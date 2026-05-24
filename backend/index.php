@@ -11,8 +11,8 @@ Middleware::handleCORS();
 $requestUri = $_SERVER['REQUEST_URI'] ?? '';
 $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
 
-// Eliminate query parameters from URI path
-$path = parse_url($requestUri, PHP_URL_PATH);
+// Eliminate query parameters from URI path and decode URL-encoded characters (like %20 for spaces)
+$path = urldecode(parse_url($requestUri, PHP_URL_PATH));
 
 // Clean up project subdirectories (e.g. "/final-project/backend/api/auth/login" -> "api/auth/login")
 $baseDir = dirname($scriptName);

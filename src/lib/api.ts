@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Local development REST API base URL served via Apache/XAMPP
-export const API_BASE_URL = 'http://localhost/final-project/backend/api';
+export const API_BASE_URL = 'http://localhost/library management-final-project/backend/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -47,8 +47,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Guard against infinite refresh loops
-    if (originalRequest && error.response && error.response.status === 401 && !originalRequest._retry) {
+    // Skip token refresh for auth endpoints (login, register, etc.)
+    const authPaths = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/request-password-reset', '/auth/reset-password'];
+    const isAuthRequest = originalRequest?.url && authPaths.some(path => originalRequest.url.includes(path));
+
+    // Guard against infinite refresh loops — never intercept auth endpoints
+    if (originalRequest && error.response && error.response.status === 401 && !originalRequest._retry && !isAuthRequest) {
       
       // If we are already refreshing, push this request into the waiting queue
       if (isRefreshing) {

@@ -8,19 +8,19 @@ import DashboardLayout from './components/layout/DashboardLayout';
 import AdminRoute from './components/layout/AdminRoute';
 
 // Page Imports
-import LandingPage from './pages/LandingPage';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import MemberDashboard from './pages/MemberDashboard';
-import BookCatalog from './pages/BookCatalog';
-import MyBooks from './pages/MyBooks';
-import History from './pages/History';
-import Fines from './pages/Fines';
-import Notifications from './pages/Notifications';
-import Profile from './pages/Profile';
+import LandingPage from './pages/public/LandingPage';
+import Login from './pages/auth/Login';
+import Signup from './pages/auth/Signup';
+import MemberDashboard from './pages/member/MemberDashboard';
+import BookCatalog from './pages/member/BookCatalog';
+import MyBooks from './pages/member/MyBooks';
+import History from './pages/member/History';
+import Fines from './pages/member/Fines';
+import Notifications from './pages/member/Notifications';
+import Profile from './pages/member/Profile';
 
 // Admin Pages Imports
-import AdminDashboard from './pages/AdminDashboard';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminBooks from './pages/admin/AdminBooks';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminTransactions from './pages/admin/AdminTransactions';

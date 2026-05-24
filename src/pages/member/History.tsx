@@ -1,7 +1,7 @@
-// src/pages/History.tsx
+// src/pages/member/History.tsx
 import React from 'react';
-import useFetch from '../hooks/useFetch';
-import DataTable from '../components/common/DataTable';
+import useFetch from '../../hooks/useFetch';
+import DataTable from '../../components/common/DataTable';
 import { Calendar, BookOpen } from 'lucide-react';
 
 export const History: React.FC = () => {

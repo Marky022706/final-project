@@ -1,11 +1,11 @@
-// src/pages/Login.tsx
+// src/pages/auth/Login.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 import { ArrowLeft, Eye, EyeOff, AlertCircle, KeyRound, Smartphone, Shield, X } from 'lucide-react';
-import api from '../lib/api';
-import Button from '../components/common/Button';
-import logoImg from '../assets/logo.png';
+import api from '../../lib/api';
+import Button from '../../components/common/Button';
+import logoImg from '../../assets/logo.png';
 
 export const Login: React.FC = () => {
   const { login, user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -68,6 +68,7 @@ export const Login: React.FC = () => {
       const errMsg = err.response?.data?.message || err.message || 'Login failed. Please check your credentials.';
       setError(errMsg);
       console.error('Login Process Failure:', errMsg);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -431,8 +432,8 @@ export const Login: React.FC = () => {
               <div className="flex-1 overflow-y-auto py-5 pr-1 space-y-4 text-xs text-slate-600 leading-relaxed font-medium scrollbar-thin">
                 {popupType === 'privacy' ? (
                   <>
-                    <p className="font-semibold text-slate-800 text-[13px]">Privacy Policy & Data Server Integrity</p>
-                    <p>Your privacy is important to us. Your profile info (First Name, Last Name, Phone, Address, Email) is strictly safely stored on the Balingasag library server database. We never sell, share or distribute your contact details to third-party databases. The collected data is solely used for library database card validation and physical identity authentication.</p>
+                     <p className="font-semibold text-slate-800 text-[13px]">Privacy Policy & Data Server Integrity</p>
+                     <p>Your privacy is important to us. Your profile info (First Name, Last Name, Phone, Address, Email) is strictly safely stored on the Balingasag library server database. We never sell, share or distribute your contact details to third-party databases. The collected data is solely used for library database card validation and physical identity authentication.</p>
                   </>
                 ) : (
                   <>
@@ -470,7 +471,7 @@ export const Login: React.FC = () => {
         </div>
       </div>
       {/* Premium custom Login loading screen overlay */}
-      {(isSubmitting || authLoading) && (
+      {isSubmitting && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 backdrop-blur-md fade-in">
           <div className="bg-white/10 backdrop-blur-lg border border-white/15 p-8 rounded-2xl max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center gap-4 text-center text-white">
             <div className="relative w-16 h-16">

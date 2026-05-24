@@ -29,7 +29,7 @@ export const OverdueChart: React.FC<OverdueChartProps> = ({ revenueData }) => {
             No fines revenue datasets available.
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <AreaChart
               data={revenueData}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
