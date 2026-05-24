@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Local development REST API base URL served via Apache/XAMPP
-export const API_BASE_URL = 'http://localhost/library management-final-project/backend/api';
+export const API_BASE_URL = 'http://localhost/final-project/backend/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

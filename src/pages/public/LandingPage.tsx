@@ -19,17 +19,24 @@ import about5 from '../../assets/about-5.jpg';
 // Animated counter hook — counts from 0 to target when element is visible
 const useAnimatedCounter = (target: number, duration = 2000) => {
   const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const hasAnimated = useRef(false);
+  const [prevTarget, setPrevTarget] = useState(target);
+  const elementRef = useRef<HTMLSpanElement>(null);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  if (target !== prevTarget) {
+    setPrevTarget(target);
+    setCount(0);
+    setHasAnimated(false);
+  }
 
   useEffect(() => {
-    const element = ref.current;
-    if (!element || hasAnimated.current) return;
+    const element = elementRef.current;
+    if (!element || hasAnimated) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated.current) {
-          hasAnimated.current = true;
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
           const startTime = performance.now();
 
           const animate = (currentTime: number) => {
@@ -50,15 +57,9 @@ const useAnimatedCounter = (target: number, duration = 2000) => {
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, [target, duration]);
+  }, [target, duration, hasAnimated]);
 
-  // Reset animation tracking when target changes
-  useEffect(() => {
-    hasAnimated.current = false;
-    setCount(0);
-  }, [target]);
-
-  return { count, ref };
+  return { count, elementRef };
 };
 
 export const LandingPage: React.FC = () => {
@@ -118,9 +119,9 @@ export const LandingPage: React.FC = () => {
   const [totalBooks, setTotalBooks] = useState(0);
   const [activeMembers, setActiveMembers] = useState(0);
 
-  const booksCounter = useAnimatedCounter(totalBooks);
-  const membersCounter = useAnimatedCounter(activeMembers);
-  const yearsCounter = useAnimatedCounter(yearsOfService);
+  const { count: booksCount, elementRef: booksRef } = useAnimatedCounter(totalBooks);
+  const { count: membersCount, elementRef: membersRef } = useAnimatedCounter(activeMembers);
+  const { count: yearsCounterVal, elementRef: yearsRef } = useAnimatedCounter(yearsOfService);
 
   // Full Catalog States
   const [catalogLoading, setCatalogLoading] = useState(true);
@@ -188,7 +189,10 @@ export const LandingPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetchCatalog();
+    const timer = setTimeout(() => {
+      fetchCatalog();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [page, category]);
 
   const handleFilterChange = (catVal: string) => {
@@ -713,20 +717,20 @@ export const LandingPage: React.FC = () => {
             </p>
             <div className="grid grid-cols-3 gap-4 pt-4 text-center">
               <div className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100/40">
-                <span ref={booksCounter.ref} className="block text-xl md:text-2xl font-black text-emerald-600">
-                  {booksCounter.count.toLocaleString()}+
+                <span ref={booksRef} className="block text-xl md:text-2xl font-black text-emerald-600">
+                  {booksCount.toLocaleString()}+
                 </span>
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Catalog Books</span>
               </div>
               <div className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100/40">
-                <span ref={membersCounter.ref} className="block text-xl md:text-2xl font-black text-emerald-600">
-                  {membersCounter.count.toLocaleString()}+
+                <span ref={membersRef} className="block text-xl md:text-2xl font-black text-emerald-600">
+                  {membersCount.toLocaleString()}+
                 </span>
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Active Members</span>
               </div>
               <div className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100/40">
-                <span ref={yearsCounter.ref} className="block text-xl md:text-2xl font-black text-emerald-600">
-                  {yearsCounter.count}+ Yrs
+                <span ref={yearsRef} className="block text-xl md:text-2xl font-black text-emerald-600">
+                  {yearsCounterVal}+ Yrs
                 </span>
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Service</span>
               </div>

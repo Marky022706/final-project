@@ -28,7 +28,10 @@ export const AdminFines: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchFines();
+    const timer = setTimeout(() => {
+      fetchFines();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [filterStatus]);
 
   const handleSettle = async (fine: any, action: 'pay' | 'waive') => {

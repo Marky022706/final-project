@@ -35,7 +35,10 @@ export const AdminTransactions: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchTransactions();
+    const timer = setTimeout(() => {
+      fetchTransactions();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [filterStatus]);
 
   // --- Open Return Confirmation Modal ---

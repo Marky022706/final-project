@@ -6,7 +6,7 @@ import BookCard from '../../components/common/BookCard';
 import type { BookItem } from '../../components/common/BookCard';
 import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
-import { Search, Info, Filter, Book, BookMarked, CheckCircle } from 'lucide-react';
+import { Search, Info, Filter, Book, BookMarked, CheckCircle, AlertCircle } from 'lucide-react';
 
 export const BookCatalog: React.FC = () => {
   const { user, refreshProfile } = useAuth();
@@ -18,10 +18,11 @@ export const BookCatalog: React.FC = () => {
   const [selectedBook, setSelectedBook] = useState<BookItem | null>(null);
   const [borrowConfirmBook, setBorrowConfirmBook] = useState<BookItem | null>(null);
   const [successModalData, setSuccessModalData] = useState<{ title: string; dueDate: string } | null>(null);
-
-
-
+  const [reserveConfirmBook, setReserveConfirmBook] = useState<BookItem | null>(null);
+  const [reserveSuccessModalData, setReserveSuccessModalData] = useState<{ title: string; reservationId: string } | null>(null);
+  const [alreadyBookedWarning, setAlreadyBookedWarning] = useState<{ title: string; message: string } | null>(null);
   const [borrowLoadingId, setBorrowLoadingId] = useState<number | null>(null);
+  const [reserveLoadingId, setReserveLoadingId] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Pagination parameters
@@ -42,7 +43,8 @@ export const BookCatalog: React.FC = () => {
 
       if (response.data && response.data.success) {
         setBooks(response.data.data.books);
-        setTotalPages(response.data.data.pagination.total_pages);
+        const pag = response.data.data.pagination;
+        setTotalPages(pag?.totalPages || pag?.total_pages || 1);
       }
     } catch (err) {
       console.error('Failed to load catalog:', err);
@@ -52,7 +54,10 @@ export const BookCatalog: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchCatalog();
+    const timer = setTimeout(() => {
+      fetchCatalog();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [page]);
 
   // Live search: debounced catalog fetch on every keystroke (instant filtering like DataTable)
@@ -91,13 +96,42 @@ export const BookCatalog: React.FC = () => {
         refreshProfile();
       }
     } catch (err: any) {
-      setFeedback({
-        type: 'error',
-        message: err.response?.data?.message || err.message || 'Failed to borrow book.',
+      const msg = err.response?.data?.message || err.message || 'Failed to borrow book.';
+      setAlreadyBookedWarning({
+        title: book.title,
+        message: msg,
       });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setBorrowLoadingId(null);
+    }
+  };
+
+  const handleQuickReserve = async (book: BookItem) => {
+    setFeedback(null);
+    setReserveLoadingId(book.id);
+    try {
+      const response = await api.post('/reservations/create', {
+        book_id: book.id,
+      });
+
+      if (response.data && response.data.success) {
+        setReserveSuccessModalData({
+          title: book.title,
+          reservationId: response.data.data.reservation_id,
+        });
+
+        // Sync stats and refresh listings
+        fetchCatalog();
+        refreshProfile();
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Failed to place reservation.';
+      setAlreadyBookedWarning({
+        title: book.title,
+        message: msg,
+      });
+    } finally {
+      setReserveLoadingId(null);
     }
   };
 
@@ -228,7 +262,8 @@ export const BookCatalog: React.FC = () => {
               book={book}
               onViewDetails={setSelectedBook}
               onQuickBorrow={(book) => setBorrowConfirmBook(book)}
-              isBorrowLoading={borrowLoadingId === book.id}
+              onReserve={(book) => setReserveConfirmBook(book)}
+              isBorrowLoading={borrowLoadingId === book.id || reserveLoadingId === book.id}
             />
           ))}
         </div>
@@ -272,19 +307,33 @@ export const BookCatalog: React.FC = () => {
               >
                 Dismiss
               </Button>
-              <Button
-                variant="primary"
-                disabled={selectedBook.available_copies <= 0 || selectedBook.status === 'unavailable'}
-                isLoading={borrowLoadingId === selectedBook.id}
-                onClick={() => {
-                  const bk = selectedBook;
-                  setSelectedBook(null);
-                  setBorrowConfirmBook(bk);
-                }}
-                className="h-11 px-6 text-xs font-bold"
-              >
-                Borrow Book Copy
-              </Button>
+              {selectedBook.available_copies <= 0 || selectedBook.status === 'unavailable' ? (
+                <Button
+                  variant="primary"
+                  isLoading={reserveLoadingId === selectedBook.id}
+                  onClick={() => {
+                    const bk = selectedBook;
+                    setSelectedBook(null);
+                    setReserveConfirmBook(bk);
+                  }}
+                  className="h-11 px-6 text-xs font-bold bg-teal-600 hover:bg-teal-700 border-teal-600 hover:border-teal-700"
+                >
+                  Reserve Book
+                </Button>
+              ) : (
+                <Button
+                  variant="primary"
+                  isLoading={borrowLoadingId === selectedBook.id}
+                  onClick={() => {
+                    const bk = selectedBook;
+                    setSelectedBook(null);
+                    setBorrowConfirmBook(bk);
+                  }}
+                  className="h-11 px-6 text-xs font-bold"
+                >
+                  Borrow Book Copy
+                </Button>
+              )}
             </>
           )
         }
@@ -444,6 +493,143 @@ export const BookCatalog: React.FC = () => {
               <span className="text-sm font-black text-emerald-700">
                 {successModalData.dueDate}
               </span>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Reservation Confirmation Modal */}
+      <Modal
+        isOpen={!!reserveConfirmBook}
+        onClose={() => setReserveConfirmBook(null)}
+        title="Confirm Book Reservation"
+        footer={
+          reserveConfirmBook && (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setReserveConfirmBook(null)}
+                className="h-11 px-5 text-xs font-bold"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                isLoading={reserveLoadingId === reserveConfirmBook.id}
+                onClick={async () => {
+                  const bk = reserveConfirmBook;
+                  setReserveConfirmBook(null);
+                  await handleQuickReserve(bk);
+                }}
+                className="h-11 px-6 text-xs font-bold bg-teal-600 hover:bg-teal-700 border-teal-600 hover:border-teal-700 text-white"
+              >
+                Reserve
+              </Button>
+            </>
+          )
+        }
+      >
+        {reserveConfirmBook && (
+          <div className="space-y-5 text-center px-4 pt-4 pb-2">
+            <div className="mx-auto h-12 w-12 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600 mb-1">
+              <Book className="h-6 w-6" />
+            </div>
+            
+            <div className="space-y-1.5">
+              <h4 className="text-sm font-bold text-slate-800">Confirm Book Reservation</h4>
+              <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
+                You are about to place a reservation for <span className="font-extrabold text-slate-700">"{reserveConfirmBook.title}"</span> by {reserveConfirmBook.author}.
+              </p>
+            </div>
+
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100/80 space-y-2 text-left max-w-sm mx-auto">
+              <h5 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Reservation Policy</h5>
+              <div className="text-xs text-slate-600 space-y-1 leading-relaxed">
+                <p>
+                  • Processed on a First-Come, First-Served queue basis.
+                </p>
+                <p>
+                  • You will receive a notification immediately once a copy becomes ready.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Reservation Success Modal */}
+      <Modal
+        isOpen={!!reserveSuccessModalData}
+        onClose={() => setReserveSuccessModalData(null)}
+        title="Reservation Confirmed"
+        size="sm"
+        footer={
+          <Button
+            variant="primary"
+            onClick={() => setReserveSuccessModalData(null)}
+            className="w-full h-11 text-xs font-bold bg-teal-600 hover:bg-teal-700 border-teal-600 hover:border-teal-700 text-white"
+          >
+            Wonderful, Understood
+          </Button>
+        }
+      >
+        {reserveSuccessModalData && (
+          <div className="space-y-5 text-center px-4 pt-4 pb-8">
+            <div className="mx-auto h-12 w-12 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600 mb-1">
+              <CheckCircle className="h-6 w-6" />
+            </div>
+            
+            <div className="space-y-1.5">
+              <h4 className="text-base font-black text-slate-800">Reservation Placed!</h4>
+              <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
+                Successfully queued for <span className="font-extrabold text-slate-700">"{reserveSuccessModalData.title}"</span>.
+              </p>
+            </div>
+
+            <div className="p-4 bg-teal-50/40 rounded-2xl border border-teal-100/50 max-w-sm mx-auto">
+              <span className="block text-[10px] uppercase tracking-wider text-teal-600 font-bold mb-1">Reservation Code</span>
+              <span className="text-sm font-black text-teal-700">
+                {reserveSuccessModalData.reservationId}
+              </span>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Already Booked Warning Modal */}
+      <Modal
+        isOpen={!!alreadyBookedWarning}
+        onClose={() => setAlreadyBookedWarning(null)}
+        title="Library Policy Alert"
+        size="sm"
+        footer={
+          <Button
+            variant="primary"
+            onClick={() => setAlreadyBookedWarning(null)}
+            className="w-full h-11 text-xs font-bold bg-amber-600 hover:bg-amber-700 border-amber-600 hover:border-amber-700 text-white shadow-md shadow-amber-100"
+          >
+            I Understand, Dismiss
+          </Button>
+        }
+      >
+        {alreadyBookedWarning && (
+          <div className="space-y-5 text-center px-4 pt-4 pb-4">
+            <div className="mx-auto h-12 w-12 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 mb-1 animate-pulse">
+              <AlertCircle className="h-6 w-6" />
+            </div>
+            
+            <div className="space-y-2">
+              <h4 className="text-base font-extrabold text-slate-800">Borrowing/Reservation Alert</h4>
+              <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
+                Regarding title <span className="font-extrabold text-slate-700">"{alreadyBookedWarning.title}"</span>.
+              </p>
+            </div>
+
+            <div className="p-4 bg-amber-50/40 rounded-2xl border border-amber-100/50 max-w-sm mx-auto text-left">
+              <span className="block text-[9px] uppercase tracking-wider text-amber-700 font-bold mb-1">Alert Details</span>
+              <p className="text-xs text-amber-800 leading-normal font-medium">
+                {alreadyBookedWarning.message}
+              </p>
             </div>
           </div>
         )}

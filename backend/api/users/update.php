@@ -29,6 +29,8 @@ $phone = $input['phone'] ?? null;
 $address = $input['address'] ?? null;
 $role = $input['role'] ?? null;
 $status = $input['status'] ?? null;
+$email = $input['email'] ?? null;
+$password = $input['password'] ?? null;
 
 try {
     $db = Database::getConnection();
@@ -55,9 +57,18 @@ try {
             Response::badRequest('Invalid status value. Must be either active or inactive.');
         }
     }
+
+    // Email Uniqueness Check
+    if ($email !== null && $email !== $user['email']) {
+        $stmtCheck = $db->prepare("SELECT id FROM users WHERE email = :email AND id != :id");
+        $stmtCheck->execute([':email' => $email, ':id' => $userId]);
+        if ($stmtCheck->fetch()) {
+            Response::badRequest('This email address is already taken by another library cardholder.');
+        }
+    }
     
-    // Apply update
-    $stmtUpdate = $db->prepare("
+    // Apply update (dynamically include password_hash if updating password)
+    $sql = "
         UPDATE users 
         SET first_name = :first_name,
             middle_name = :middle_name,
@@ -65,11 +76,11 @@ try {
             phone = :phone,
             address = :address,
             role = :role,
-            status = :status
-        WHERE id = :id
-    ");
+            status = :status,
+            email = :email
+    ";
     
-    $stmtUpdate->execute([
+    $params = [
         ':first_name' => $firstName ?? $user['first_name'],
         ':middle_name' => $middleName ?? $user['middle_name'],
         ':last_name' => $lastName ?? $user['last_name'],
@@ -77,8 +88,19 @@ try {
         ':address' => $address ?? $user['address'],
         ':role' => $role ?? $user['role'],
         ':status' => $status ?? $user['status'],
+        ':email' => $email ?? $user['email'],
         ':id' => $userId
-    ]);
+    ];
+
+    if (!empty($password)) {
+        $sql .= ", password_hash = :password_hash";
+        $params[':password_hash'] = password_hash($password, PASSWORD_BCRYPT);
+    }
+
+    $sql .= " WHERE id = :id";
+    
+    $stmtUpdate = $db->prepare($sql);
+    $stmtUpdate->execute($params);
     
     Response::success(null, 'User profile updated successfully.');
 

@@ -702,18 +702,18 @@ export const Signup: React.FC = () => {
       </div>
       {/* Premium custom Signup loading screen overlay */}
       {(isSubmitting || authLoading) && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 backdrop-blur-md fade-in">
-          <div className="bg-white/10 backdrop-blur-lg border border-white/15 p-8 rounded-2xl max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center gap-4 text-center text-white">
-            <div className="relative w-16 h-16">
-              <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20 animate-pulse"></div>
-              <div className="absolute inset-0 rounded-full border-4 border-t-emerald-400 border-r-emerald-400 animate-spin"></div>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm fade-in">
+          <div className="bg-white border border-slate-100 p-8 rounded-3xl max-w-sm w-full mx-4 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.15)] flex flex-col items-center gap-5 text-center">
+            <div className="relative w-14 h-14">
+              <div className="absolute inset-0 rounded-full border-4 border-emerald-50 animate-pulse"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-t-emerald-500 border-r-emerald-500 animate-spin"></div>
             </div>
 
-            <div className="space-y-1.5">
-              <h3 className="text-lg font-bold tracking-tight text-white Outfit">
+            <div className="space-y-2">
+              <h3 className="text-base font-extrabold tracking-tight text-slate-800">
                 Registering Profile
               </h3>
-              <p className="text-xs text-emerald-200/80 font-medium leading-relaxed">
+              <p className="text-xs text-slate-400 font-semibold leading-relaxed">
                 Generating your library card and establishing connection... Please wait while we set up your member dashboard.
               </p>
             </div>

@@ -13,6 +13,7 @@ export interface User {
   phone?: string;
   address?: string;
   member_since?: string;
+  password?: string;
   stats?: {
     active_loans: number;
     total_loans: number;

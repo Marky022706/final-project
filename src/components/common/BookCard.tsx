@@ -14,13 +14,14 @@ export interface BookItem {
   cover_image?: string;
   total_copies: number;
   available_copies: number;
-  status: 'available' | 'unavailable';
+  status: 'available' | 'unavailable' | 'archived';
 }
 
 interface BookCardProps {
   book: BookItem;
   onViewDetails: (book: BookItem) => void;
   onQuickBorrow?: (book: BookItem) => void;
+  onReserve?: (book: BookItem) => void;
   isBorrowLoading?: boolean;
 }
 
@@ -28,9 +29,11 @@ export const BookCard: React.FC<BookCardProps> = ({
   book,
   onViewDetails,
   onQuickBorrow,
+  onReserve,
   isBorrowLoading = false,
 }) => {
   const isOutOfStock = book.available_copies <= 0 || book.status === 'unavailable';
+  const isArchived = book.status === 'archived';
 
   return (
     <div className="flex flex-col bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-md shadow-slate-100/30 hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1.5 transition-all duration-300 group">
@@ -58,7 +61,12 @@ export const BookCard: React.FC<BookCardProps> = ({
 
         {/* Availability Badge Overlay */}
         <div className="absolute top-3 right-3">
-          {isOutOfStock ? (
+          {isArchived ? (
+            <span className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-full">
+              <XCircle className="h-3 w-3" />
+              Archived
+            </span>
+          ) : isOutOfStock ? (
             <span className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-100 rounded-full">
               <XCircle className="h-3 w-3" />
               Out of Stock
@@ -101,16 +109,36 @@ export const BookCard: React.FC<BookCardProps> = ({
           </Button>
 
           {onQuickBorrow && (
-            <Button
-              variant="primary"
-              size="sm"
-              disabled={isOutOfStock}
-              isLoading={isBorrowLoading}
-              onClick={() => onQuickBorrow(book)}
-              className="w-full text-xs"
-            >
-              Borrow Book
-            </Button>
+            isArchived ? (
+              <Button
+                variant="primary"
+                size="sm"
+                disabled
+                className="w-full text-xs bg-slate-100 text-slate-400 border-slate-200"
+              >
+                Archived
+              </Button>
+            ) : isOutOfStock ? (
+              <Button
+                variant="primary"
+                size="sm"
+                isLoading={isBorrowLoading}
+                onClick={() => onReserve && onReserve(book)}
+                className="w-full text-xs bg-teal-600 hover:bg-teal-700 border-teal-600 hover:border-teal-700"
+              >
+                Reserve
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                size="sm"
+                isLoading={isBorrowLoading}
+                onClick={() => onQuickBorrow(book)}
+                className="w-full text-xs"
+              >
+                Borrow Book
+              </Button>
+            )
           )}
         </div>
       </div>

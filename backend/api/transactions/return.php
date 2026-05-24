@@ -57,8 +57,8 @@ try {
     $bookId = (int)$txn['book_id'];
     $userId = (int)$txn['user_id'];
     
-    // 2. Increment book available copies
-    $stmtBook = $db->prepare("SELECT title, available_copies, total_copies FROM books WHERE id = :id FOR UPDATE");
+    // 2. Increment book available copies and check for reservations queue
+    $stmtBook = $db->prepare("SELECT id, title, available_copies, total_copies FROM books WHERE id = :id FOR UPDATE");
     $stmtBook->execute([':id' => $bookId]);
     $book = $stmtBook->fetch();
     
@@ -69,6 +69,33 @@ try {
             ':available' => $newAvailable,
             ':id' => $bookId
         ]);
+
+        // Check if there is any pending reservation for this book (First-Come-First-Served queue)
+        $stmtPendingRes = $db->prepare("
+            SELECT id, user_id FROM reservations 
+            WHERE book_id = :book_id AND status = 'pending' 
+            ORDER BY reservation_date ASC LIMIT 1
+            FOR UPDATE
+        ");
+        $stmtPendingRes->execute([':book_id' => $bookId]);
+        $oldestRes = $stmtPendingRes->fetch();
+
+        if ($oldestRes) {
+            // Shift reservation status to 'ready'
+            $stmtUpdateRes = $db->prepare("UPDATE reservations SET status = 'ready' WHERE id = :id");
+            $stmtUpdateRes->execute([':id' => $oldestRes['id']]);
+
+            // Notify member that the book is ready for borrowing
+            $stmtNotifRes = $db->prepare("
+                INSERT INTO notifications (user_id, title, message, type)
+                VALUES (:user_id, :title, :message, 'reservation_ready')
+            ");
+            $stmtNotifRes->execute([
+                ':user_id' => $oldestRes['user_id'],
+                ':title' => 'Reserved Book Ready',
+                ':message' => 'The book "' . $book['title'] . '" you reserved is now available! Please borrow it from your dashboard.'
+            ]);
+        }
     }
     
     // 3. Check for late return and calculate fine

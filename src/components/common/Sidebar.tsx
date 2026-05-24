@@ -13,7 +13,8 @@ import {
   LogOut,
   Users,
   FileBarChart2,
-  ListOrdered
+  ListOrdered,
+  Archive
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -23,6 +24,8 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const { user, logout } = useAuth();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
   if (!user) return null;
 
   const isAdmin = user.role === 'admin';
@@ -32,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     ? [
         { label: 'Admin Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
         { label: 'Book Inventory', path: '/admin/books', icon: BookOpen },
+        { label: 'Archive Books', path: '/admin/archived-books', icon: Archive },
         { label: 'Member Directory', path: '/admin/users', icon: Users },
         { label: 'Borrow Logs', path: '/admin/transactions', icon: ListOrdered },
         { label: 'Fines Management', path: '/admin/fines', icon: Wallet },
@@ -45,8 +49,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         { label: 'My Fines & Dues', path: '/fines', icon: Wallet },
         { label: 'Notifications', path: '/notifications', icon: Bell },
       ];
-
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const handleLogout = () => {
     setIsLogoutModalOpen(true);

@@ -37,7 +37,10 @@ export const AdminUsers: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
+    const timer = setTimeout(() => {
+      fetchUsers();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // --- Open Role Switch Confirmation ---

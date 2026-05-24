@@ -93,6 +93,7 @@ export const MemberDashboard: React.FC = () => {
   
   const [activeLoans, setActiveLoans] = useState<any[]>([]);
   const [newArrivals, setNewArrivals] = useState<any[]>([]);
+  const [readyReservations, setReadyReservations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -111,7 +112,13 @@ export const MemberDashboard: React.FC = () => {
           setNewArrivals(responseNew.data.data.books);
         }
 
-        // Sync fresh profile stats
+        // Fetch ready reservations
+        const responseRes = await api.get('/reservations/list', { params: { status: 'ready' } });
+        if (responseRes.data && responseRes.data.success) {
+          setReadyReservations(responseRes.data.data);
+        }
+
+        // Sync stats and refresh listings
         await refreshProfile();
       } catch (err) {
         console.error('Failed to load member dashboard info:', err);
@@ -190,6 +197,26 @@ export const MemberDashboard: React.FC = () => {
             <p className="font-semibold mt-0.5 text-rose-600">
               One or more of your active book loans has expired past the due date. Please return these copies immediately to the Municipal Desk to avoid incremental overdue charges of <span className="font-bold">₱5.00/day</span>.
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Ready Reservations Alert Banner */}
+      {readyReservations.length > 0 && (
+        <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4.5 flex gap-3 text-teal-700 animate-pulse-once">
+          <BookMarked className="h-5.5 w-5.5 flex-shrink-0 mt-0.5" />
+          <div className="text-xs leading-normal flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h4 className="font-extrabold text-slate-800">Reserved Book Now Available!</h4>
+              <p className="font-semibold mt-0.5 text-teal-600">
+                Excellent news! Your reserved book <span className="font-extrabold text-slate-700">"{readyReservations[0].title}"</span> by {readyReservations[0].author} is now available and currently held for you at the library desk.
+              </p>
+            </div>
+            <Link to="/my-books" className="flex-shrink-0">
+              <Button variant="primary" className="text-[10px] py-1.5 px-3 bg-teal-600 hover:bg-teal-700 border-teal-600 hover:border-teal-700 text-white font-bold h-auto shadow-md shadow-teal-100">
+                Claim Held Copy
+              </Button>
+            </Link>
           </div>
         </div>
       )}

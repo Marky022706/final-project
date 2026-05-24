@@ -13,6 +13,9 @@ export const Profile: React.FC = () => {
   const [lastName, setLastName] = useState(user?.last_name || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [address, setAddress] = useState(user?.address || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
@@ -37,6 +40,12 @@ export const Profile: React.FC = () => {
       return;
     }
 
+    if (password && password !== confirmPassword) {
+      setError('New passwords do not match. Please verify.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -46,8 +55,12 @@ export const Profile: React.FC = () => {
         last_name: lastName,
         phone,
         address,
+        email,
+        password: password || undefined,
       });
-      setSuccess('Your profile contact details have been successfully updated!');
+      setSuccess('Your profile and settings have been successfully updated!');
+      setPassword('');
+      setConfirmPassword('');
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Failed to update profile details.');
     } finally {
@@ -174,16 +187,17 @@ export const Profile: React.FC = () => {
               </div>
             </div>
 
-            {/* Email (Read-only for security!) */}
+            {/* Email */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
-                Library Card Email (Immutable)
+                Library Card Email
               </label>
               <input
                 type="email"
-                disabled
-                value={user.email}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-400 cursor-not-allowed text-sm font-semibold"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm font-semibold"
               />
             </div>
 
@@ -214,6 +228,46 @@ export const Profile: React.FC = () => {
                   placeholder="Barangay 3, Balingasag"
                   className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm"
                 />
+              </div>
+            </div>
+
+            {/* Change Password Panel */}
+            <div className="border-t border-slate-100 pt-5 space-y-4">
+              <div className="space-y-1">
+                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Update Account Password
+                </h3>
+                <p className="text-[10px] text-slate-400 font-semibold">
+                  Leave these fields blank if you do not wish to modify your account password.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm"
+                  />
+                </div>
               </div>
             </div>
 

@@ -4,7 +4,7 @@ import api from '../../lib/api';
 import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
-import { BookOpen, Edit, Trash2, Plus, Info, CheckCircle, XCircle, Search, Sparkles, X, Loader2 } from 'lucide-react';
+import { BookOpen, Edit, Trash2, Plus, Info, CheckCircle, XCircle, Search, Sparkles, X, Loader2, Archive, RotateCcw } from 'lucide-react';
 import { fetchBookByIsbn } from '../../lib/bookApi';
 import { useToast } from '../../context/ToastContext';
 
@@ -31,6 +31,8 @@ export const AdminBooks: React.FC = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState<any | null>(null);
   const [deleteConfirmBook, setDeleteConfirmBook] = useState<any | null>(null);
+  const [archiveConfirmBook, setArchiveConfirmBook] = useState<any | null>(null);
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -101,7 +103,10 @@ export const AdminBooks: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchBooks();
+    const timer = setTimeout(() => {
+      fetchBooks();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -241,6 +246,35 @@ export const AdminBooks: React.FC = () => {
     }
   };
 
+  const handleOpenArchiveConfirm = (book: any) => {
+    if (book.status !== 'archived') {
+      const activeBorrows = book.total_copies - book.available_copies;
+      if (activeBorrows > 0) {
+        toast.warn(`Archival BLOCKED. The title currently has ${activeBorrows} physical copy loans in active circulation.`);
+        return;
+      }
+    }
+    setArchiveConfirmBook(book);
+  };
+
+  const handleArchiveExecute = async (book: any) => {
+    setArchiveLoading(true);
+    try {
+      const response = await api.post('/books/archive', {
+        id: book.id
+      });
+      if (response.data && response.data.success) {
+        fetchBooks();
+        toast.success(response.data.message || 'Book status toggled successfully.');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to toggle book archival status.');
+    } finally {
+      setArchiveLoading(false);
+      setArchiveConfirmBook(null);
+    }
+  };
+
   const columns = [
     {
       header: 'Book details',
@@ -281,13 +315,19 @@ export const AdminBooks: React.FC = () => {
     },
     {
       header: 'Status',
-      accessor: (row: any) => (
-        <span className={`px-2 py-0.5 border rounded-full text-[10px] font-bold capitalize ${
-          row.status === 'available' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-100'
-        }`}>
-          {row.status}
-        </span>
-      ),
+      accessor: (row: any) => {
+        const statuses = {
+          available: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+          unavailable: 'bg-rose-50 text-rose-600 border-rose-100',
+          archived: 'bg-slate-100 text-slate-600 border-slate-200',
+        };
+        const statusMap = row.status as keyof typeof statuses;
+        return (
+          <span className={`px-2 py-0.5 border rounded-full text-[10px] font-bold capitalize ${statuses[statusMap] || 'bg-slate-50 text-slate-500 border-slate-100'}`}>
+            {row.status}
+          </span>
+        );
+      },
       sortable: true,
       sortKey: 'status'
     },
@@ -326,6 +366,33 @@ export const AdminBooks: React.FC = () => {
                   <Edit className="h-4 w-4" strokeWidth={2.5} />
                   <span>Edit Details</span>
                 </button>
+
+                {row.status === 'archived' ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveDropdownId(null);
+                      handleOpenArchiveConfirm(row);
+                    }}
+                    className="w-full px-3.5 py-2.5 text-xs font-bold text-teal-600 hover:bg-teal-50 transition-colors flex items-center gap-2 border-t border-slate-50"
+                  >
+                    <RotateCcw className="h-4 w-4" strokeWidth={2.5} />
+                    <span>Unarchive Book</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveDropdownId(null);
+                      handleOpenArchiveConfirm(row);
+                    }}
+                    className="w-full px-3.5 py-2.5 text-xs font-bold text-amber-600 hover:bg-amber-50 transition-colors flex items-center gap-2 border-t border-slate-50"
+                  >
+                    <Archive className="h-4 w-4" strokeWidth={2.5} />
+                    <span>Archive Books</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => {
@@ -335,7 +402,7 @@ export const AdminBooks: React.FC = () => {
                   className="w-full px-3.5 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-50/50 transition-colors flex items-center gap-2 border-t border-slate-50"
                 >
                   <Trash2 className="h-4 w-4" strokeWidth={2.5} />
-                  <span>Delete Title</span>
+                  <span>Delete Books</span>
                 </button>
               </div>
             )}
@@ -390,7 +457,7 @@ export const AdminBooks: React.FC = () => {
       ) : (
         <DataTable
           columns={columns}
-          data={books}
+          data={books.filter(b => b.status !== 'archived')}
           searchPlaceholder="Filter registry by title, author, isbn..."
           searchField={(row) => `${row.title} ${row.author} ${row.isbn}`}
           initialSortKey="title"
@@ -685,6 +752,75 @@ export const AdminBooks: React.FC = () => {
               <h4 className="text-sm font-bold text-slate-800">Confirm Catalog Deletion</h4>
               <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
                 Are you absolutely sure you want to permanently delete <span className="font-extrabold text-slate-700">"{deleteConfirmBook.title}"</span> from the catalog registry?
+              </p>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* ARCHIVE/UNARCHIVE CONFIRMATION MODAL */}
+      <Modal
+        isOpen={!!archiveConfirmBook}
+        onClose={() => setArchiveConfirmBook(null)}
+        title={archiveConfirmBook?.status === 'archived' ? 'Unarchive Book' : 'Archive Book'}
+        size="sm"
+        footer={
+          <div className="flex items-center justify-center gap-3 w-full">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setArchiveConfirmBook(null)}
+              className="h-11 px-5 text-xs font-bold"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              isLoading={archiveLoading}
+              onClick={() => {
+                if (archiveConfirmBook) {
+                  handleArchiveExecute(archiveConfirmBook);
+                }
+              }}
+              className={`h-11 px-6 text-xs font-bold text-white border-transparent ${
+                archiveConfirmBook?.status === 'archived'
+                  ? 'bg-teal-600 hover:bg-teal-700 font-bold border-teal-600 shadow-md shadow-teal-100'
+                  : 'bg-amber-600 hover:bg-amber-700 font-bold border-amber-600 shadow-md shadow-amber-100'
+              }`}
+            >
+              {archiveConfirmBook?.status === 'archived' ? 'Unarchive' : 'Archive'}
+            </Button>
+          </div>
+        }
+      >
+        {archiveConfirmBook && (
+          <div className="space-y-5 text-center px-4 pt-4 pb-2">
+            <div className={`mx-auto h-12 w-12 rounded-full border flex items-center justify-center mb-1 animate-pulse ${
+              archiveConfirmBook.status === 'archived'
+                ? 'bg-teal-50 border-teal-100 text-teal-600'
+                : 'bg-amber-50 border-amber-100 text-amber-600'
+            }`}>
+              {archiveConfirmBook.status === 'archived'
+                ? <RotateCcw className="h-6 w-6" />
+                : <Archive className="h-6 w-6" />
+              }
+            </div>
+
+            <div className="space-y-1.5">
+              <h4 className="text-sm font-bold text-slate-800">
+                {archiveConfirmBook.status === 'archived' ? 'Unarchive Book' : 'Archive Book'}
+              </h4>
+              <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
+                {archiveConfirmBook.status === 'archived' ? (
+                  <>
+                    Are you sure you want to unarchive <span className="font-extrabold text-slate-700">"{archiveConfirmBook.title}"</span>? This will make it visible to members in the library catalog.
+                  </>
+                ) : (
+                  <>
+                    Are you sure you want to archive <span className="font-extrabold text-slate-700">"{archiveConfirmBook.title}"</span>? This will hide the title from members but preserve all past transaction logs.
+                  </>
+                )}
               </p>
             </div>
           </div>

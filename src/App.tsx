@@ -22,6 +22,7 @@ import Profile from './pages/member/Profile';
 // Admin Pages Imports
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminBooks from './pages/admin/AdminBooks';
+import AdminArchivedBooks from './pages/admin/AdminArchivedBooks';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminTransactions from './pages/admin/AdminTransactions';
 import AdminFines from './pages/admin/AdminFines';
@@ -64,6 +65,14 @@ export const App: React.FC = () => {
               element={
                 <AdminRoute>
                   <AdminBooks />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/archived-books"
+              element={
+                <AdminRoute>
+                  <AdminArchivedBooks />
                 </AdminRoute>
               }
             />

@@ -9,7 +9,10 @@ export const useFetch = <T = any>(url: string, immediate = true) => {
 
   const immediateRef = useRef(immediate);
   const urlRef = useRef(url);
-  urlRef.current = url;
+
+  useEffect(() => {
+    urlRef.current = url;
+  }, [url]);
 
   const execute = useCallback(async (params?: any) => {
     setLoading(true);

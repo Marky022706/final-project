@@ -31,9 +31,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   };
 
   useEffect(() => {
-    fetchNotifications();
+    const timer = setTimeout(() => {
+      fetchNotifications();
+    }, 0);
     const interval = setInterval(fetchNotifications, 60000); // Check every 60s
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, [user]);
 
   // Handle clicking outside to close dropdown

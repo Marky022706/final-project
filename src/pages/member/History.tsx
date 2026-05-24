@@ -1,11 +1,16 @@
 // src/pages/member/History.tsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import useFetch from '../../hooks/useFetch';
 import DataTable from '../../components/common/DataTable';
 import { Calendar, BookOpen } from 'lucide-react';
 
 export const History: React.FC = () => {
-  const { data: transactions, loading } = useFetch<any[]>('/transactions/list');
+  const [filterStatus, setFilterStatus] = useState('');
+  const { data: transactions, loading, execute } = useFetch<any[]>('/transactions/list', false);
+
+  useEffect(() => {
+    execute(filterStatus ? { status: filterStatus } : undefined);
+  }, [filterStatus, execute]);
 
   const columns = [
     {
@@ -86,13 +91,30 @@ export const History: React.FC = () => {
 
   return (
     <div className="space-y-6 fade-in">
-      <div>
-        <h2 className="text-xl font-extrabold text-slate-800 tracking-tight leading-none mb-1">
-          Borrowing History
-        </h2>
-        <p className="text-xs text-slate-400 font-semibold">
-          Explore complete logs of past book transactions and outstanding charges
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-extrabold text-slate-800 tracking-tight leading-none mb-1">
+            Borrowing History
+          </h2>
+          <p className="text-xs text-slate-400 font-semibold">
+            Explore complete logs of past book transactions and outstanding charges
+          </p>
+        </div>
+
+        {/* Dynamic Filters */}
+        <div className="relative">
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="pl-4 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 text-xs font-bold text-slate-600 appearance-none cursor-pointer"
+          >
+            <option value="">All Transactions Logs</option>
+            <option value="active">Active Checkouts</option>
+            <option value="overdue">Overdue Loans</option>
+            <option value="completed">Completed Returns</option>
+          </select>
+          <span className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400 text-[10px] font-bold">▼</span>
+        </div>
       </div>
 
       {loading ? (

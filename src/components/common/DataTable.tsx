@@ -74,10 +74,7 @@ export const DataTable = <T extends Record<string, any>>({
     return sorted;
   }, [filteredData, sortKey, sortOrder]);
 
-  // Reset pagination on search
-  useMemo(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+
 
   // 3. Paginate Data
   const totalItems = sortedData.length;
@@ -110,14 +107,17 @@ export const DataTable = <T extends Record<string, any>>({
         <input
           type="text"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setCurrentPage(1);
+          }}
           placeholder={searchPlaceholder}
           className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
         />
       </div>
 
       {/* Main Table view */}
-      <div className="overflow-hidden border border-slate-100 rounded-2xl bg-white/70 backdrop-blur-md shadow-sm">
+      <div className="overflow-visible border border-slate-100 rounded-2xl bg-white/70 backdrop-blur-md shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-sm text-slate-600">
             <thead className="bg-slate-50/70 border-b border-slate-100 text-slate-700">

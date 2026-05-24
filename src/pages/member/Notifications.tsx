@@ -29,7 +29,10 @@ export const Notifications: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchNotifs();
+    const timer = setTimeout(() => {
+      fetchNotifs();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleMarkRead = async (id: number) => {

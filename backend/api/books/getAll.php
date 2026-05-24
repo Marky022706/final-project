@@ -25,6 +25,12 @@ try {
     // Construct Query
     $whereClauses = [];
     $params = [];
+
+    // By default, exclude archived books unless explicitly requested
+    $includeArchived = isset($_GET['include_archived']) && $_GET['include_archived'] === 'true';
+    if (!$includeArchived) {
+        $whereClauses[] = "status != 'archived'";
+    }
     
     if (!empty($search)) {
         $whereClauses[] = "(title LIKE :search_title OR author LIKE :search_author OR isbn LIKE :search_isbn)";

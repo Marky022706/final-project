@@ -61,6 +61,23 @@ try {
         $db->rollBack();
         Response::badRequest('This book is currently out of stock or unavailable for loan.');
     }
+
+    // Reservation Queue Lock Check
+    // If there are ready reservations for this book, ensure they are prioritized.
+    $stmtReadyRes = $db->prepare("SELECT COUNT(*) FROM reservations WHERE book_id = :book_id AND status = 'ready'");
+    $stmtReadyRes->execute([':book_id' => $bookId]);
+    $readyCount = (int)$stmtReadyRes->fetchColumn();
+
+    $stmtUserReady = $db->prepare("SELECT id FROM reservations WHERE book_id = :book_id AND user_id = :user_id AND status = 'ready'");
+    $stmtUserReady->execute([':book_id' => $bookId, ':user_id' => $userId]);
+    $hasUserReady = $stmtUserReady->fetch() ? true : false;
+
+    if ($readyCount > 0 && !$hasUserReady) {
+        if ((int)$book['available_copies'] <= $readyCount) {
+            $db->rollBack();
+            Response::badRequest('This copy is currently held for a member who has a prioritized book reservation.');
+        }
+    }
     
     // 3. Verify borrowing limits (Max 3 active loans)
     $stmtLimit = $db->prepare("SELECT COUNT(*) FROM transactions WHERE user_id = :user_id AND status IN ('active', 'overdue')");
@@ -120,6 +137,19 @@ try {
         ':borrow_date' => $borrowDate,
         ':due_date' => $dueDate
     ]);
+
+    // 7.5. Mark reservation as completed if it was ready
+    if ($hasUserReady) {
+        $stmtCompleteRes = $db->prepare("
+            UPDATE reservations 
+            SET status = 'completed' 
+            WHERE book_id = :book_id AND user_id = :user_id AND status = 'ready'
+        ");
+        $stmtCompleteRes->execute([
+            ':book_id' => $bookId,
+            ':user_id' => $userId
+        ]);
+    }
     
     // 8. Create Notification for the member
     $stmtNotif = $db->prepare("
