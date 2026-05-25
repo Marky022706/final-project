@@ -180,14 +180,16 @@ export const AdminReservations: React.FC = () => {
     {
       header: 'Copies',
       accessor: (row: Reservation) => (
-        <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded-full border ${
-          row.available_copies > 0
-            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-            : 'bg-rose-50 text-rose-600 border-rose-100'
-        }`}>
-          {row.available_copies > 0 ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
-          {row.available_copies} avail.
-        </span>
+        <div className="flex justify-center">
+          <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full border ${
+            row.available_copies > 0
+              ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+              : 'bg-rose-50 text-rose-600 border-rose-100'
+          }`}>
+            {row.available_copies > 0 ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+            {row.available_copies > 0 ? `${row.available_copies} Available` : 'Unavailable'}
+          </span>
+        </div>
       )
     },
     {
@@ -234,29 +236,29 @@ export const AdminReservations: React.FC = () => {
                 {row.status === 'pending' && (
                   <button
                     onClick={() => setConfirmAction({ reservation: row, action: 'ready' })}
-                    className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/50 text-[10px] font-bold rounded-lg flex items-center gap-1 transition-all active:scale-95"
+                    className="h-10 px-3.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/50 text-xs font-bold rounded-xl flex items-center gap-2 transition-all active:scale-95"
                     title="Mark as Ready for Collection"
                   >
-                    <Bell className="h-3 w-3" />
+                    <Bell className="h-4 w-4" />
                     <span>Mark Ready</span>
                   </button>
                 )}
                 {row.status === 'ready' && (
                   <button
                     onClick={() => setConfirmAction({ reservation: row, action: 'completed' })}
-                    className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/50 text-[10px] font-bold rounded-lg flex items-center gap-1 transition-all active:scale-95"
+                    className="h-10 px-3.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/50 text-xs font-bold rounded-xl flex items-center gap-2 transition-all active:scale-95"
                     title="Mark as Completed / Collected"
                   >
-                    <CheckCircle className="h-3 w-3" />
+                    <CheckCircle className="h-4 w-4" />
                     <span>Complete</span>
                   </button>
                 )}
                 <button
                   onClick={() => setConfirmAction({ reservation: row, action: 'cancelled' })}
-                  className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/50 text-[10px] font-bold rounded-lg flex items-center gap-1 transition-all active:scale-95"
+                  className="h-10 px-3.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/50 text-xs font-bold rounded-xl flex items-center gap-2 transition-all active:scale-95"
                   title="Cancel this reservation"
                 >
-                  <XCircle className="h-3 w-3" />
+                  <XCircle className="h-4 w-4" />
                   <span>Cancel</span>
                 </button>
               </>
@@ -348,7 +350,7 @@ export const AdminReservations: React.FC = () => {
             <button
               key={tab.key}
               onClick={() => setActiveFilter(tab.key)}
-              className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all duration-150 active:scale-95 flex items-center gap-2 ${
+              className={`h-10 px-4 text-xs font-bold rounded-xl border transition-all duration-150 active:scale-95 flex items-center gap-2 ${
                 isActive
                   ? `bg-${tab.color === 'slate' ? 'slate-800' : tab.color + '-600'} text-white border-transparent shadow-md`
                   : `bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50`
