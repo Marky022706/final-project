@@ -5,6 +5,7 @@ USE balingasag_library;
 -- Drop tables if they exist (in reverse dependency order)
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS reservations;
 DROP TABLE IF EXISTS fines;
 DROP TABLE IF EXISTS transactions;
 DROP TABLE IF EXISTS books;

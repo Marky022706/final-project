@@ -30,9 +30,21 @@ try {
 
     // 3. Create reservations performance indexes
     echo "Creating indexes for 'reservations'...\n";
-    $db->exec("CREATE INDEX IF NOT EXISTS idx_reservations_status ON reservations(status)");
-    $db->exec("CREATE INDEX IF NOT EXISTS idx_reservations_user ON reservations(user_id)");
-    $db->exec("CREATE INDEX IF NOT EXISTS idx_reservations_book ON reservations(book_id)");
+    try {
+        $db->exec("CREATE INDEX idx_reservations_status ON reservations(status)");
+    } catch (PDOException $e) {
+        // Ignored if index already exists
+    }
+    try {
+        $db->exec("CREATE INDEX idx_reservations_user ON reservations(user_id)");
+    } catch (PDOException $e) {
+        // Ignored if index already exists
+    }
+    try {
+        $db->exec("CREATE INDEX idx_reservations_book ON reservations(book_id)");
+    } catch (PDOException $e) {
+        // Ignored if index already exists
+    }
     echo "Indexes verified successfully!\n";
 
     echo "Migration completed successfully!\n";

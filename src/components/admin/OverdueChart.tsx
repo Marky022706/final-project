@@ -19,8 +19,8 @@ export const OverdueChart: React.FC<OverdueChartProps> = ({ revenueData }) => {
   return (
     <Card className="flex flex-col h-[340px] animate-fade-in">
       <div className="mb-4">
-        <h4 className="text-sm font-bold text-slate-800">Fines Collection Revenue</h4>
-        <p className="text-[11px] text-slate-400">Monthly fines collection history for the last 6 months</p>
+        <h4 className="text-base font-bold text-slate-800">Fines Collection Revenue</h4>
+        <p className="text-xs text-slate-400">Monthly fines collection history for the last 6 months</p>
       </div>
 
       <div className="flex-1 w-full relative min-h-0">
@@ -43,12 +43,12 @@ export const OverdueChart: React.FC<OverdueChartProps> = ({ revenueData }) => {
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
               <XAxis 
                 dataKey="month" 
-                tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 600 }}
+                tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis 
-                tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 600 }}
+                tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(val) => `₱${val}`}

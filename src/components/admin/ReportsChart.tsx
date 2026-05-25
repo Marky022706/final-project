@@ -84,8 +84,8 @@ export const ReportsChart: React.FC<ChartProps> = ({ categoriesData, booksData }
       {/* Category distribution - Pie Chart */}
       <Card className="flex flex-col h-[420px]">
         <div className="mb-4">
-          <h4 className="text-sm font-bold text-slate-800">Borrowings by Genre/Category</h4>
-          <p className="text-[11px] text-slate-400">Loan share by book genre — click segments for details</p>
+          <h4 className="text-base font-bold text-slate-800">Borrowings by Genre/Category</h4>
+          <p className="text-xs text-slate-400">Loan share by book genre — click segments for details</p>
         </div>
 
         <div className="flex-1 w-full relative min-h-0">
@@ -139,10 +139,10 @@ export const ReportsChart: React.FC<ChartProps> = ({ categoriesData, booksData }
                   className="h-2.5 w-2.5 rounded-full flex-shrink-0" 
                   style={{ backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] }}
                 />
-                <span className="text-[10px] font-bold text-slate-500 capitalize">
+                <span className="text-xs font-bold text-slate-600 capitalize">
                   {item.name}
                 </span>
-                <span className="text-[10px] font-bold text-slate-400">
+                <span className="text-xs font-semibold text-slate-400">
                   ({item.value})
                 </span>
               </div>
@@ -153,9 +153,9 @@ export const ReportsChart: React.FC<ChartProps> = ({ categoriesData, booksData }
 
       {/* Top books - Bar Chart */}
       <Card className="flex flex-col h-[420px]">
-        <div className="mb-1">
-          <h4 className="text-sm font-bold text-slate-800">Top 5 Most Checked Out Books</h4>
-          <p className="text-[11px] text-slate-400">Titles with highest cumulative circulation volume</p>
+        <div className="mb-2">
+          <h4 className="text-base font-bold text-slate-800">Top 5 Most Checked Out Books</h4>
+          <p className="text-xs text-slate-400">Titles with highest cumulative circulation volume</p>
         </div>
 
         <div className="flex-1 w-full relative min-h-0">
@@ -173,18 +173,18 @@ export const ReportsChart: React.FC<ChartProps> = ({ categoriesData, booksData }
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                   <XAxis 
                     dataKey="name" 
-                    tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 600 }}
+                    tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
                     axisLine={false}
                     tickLine={false}
                     interval={0}
                     tickFormatter={(val) => val.length > 13 ? `${val.substring(0, 11)}…` : val}
                   />
                   <YAxis 
-                    tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 600 }}
+                    tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
                     axisLine={false}
                     tickLine={false}
                     allowDecimals={false}
-                    label={{ value: 'Checkouts', angle: -90, position: 'insideLeft', offset: 30, style: { fill: '#cbd5e1', fontSize: 9, fontWeight: 700 } }}
+                    label={{ value: 'Checkouts', angle: -90, position: 'insideLeft', offset: 30, style: { fill: '#94a3b8', fontSize: 11, fontWeight: 700 } }}
                   />
                   <Tooltip content={<BarTooltip />} />
                   <Bar 
@@ -211,10 +211,10 @@ export const ReportsChart: React.FC<ChartProps> = ({ categoriesData, booksData }
                       className="h-2.5 w-2.5 rounded-sm flex-shrink-0" 
                       style={{ backgroundColor: BAR_COLORS[idx % BAR_COLORS.length] }}
                     />
-                    <span className="text-[9px] font-bold text-slate-500 truncate max-w-[80px]" title={item.name}>
+                    <span className="text-[11px] font-bold text-slate-600 truncate max-w-[90px]" title={item.name}>
                       {item.name.length > 12 ? `${item.name.substring(0, 10)}…` : item.name}
                     </span>
-                    <span className="text-[9px] text-slate-400 font-semibold">({item.value})</span>
+                    <span className="text-[11px] text-slate-400 font-semibold">({item.value})</span>
                   </div>
                 ))}
               </div>

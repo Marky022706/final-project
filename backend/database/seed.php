@@ -94,104 +94,7 @@ try {
 
     // 4. Seed Books
     echo "Seeding books...\n";
-    $books = [
-        [
-            'title' => 'Clean Code',
-            'author' => 'Robert C. Martin',
-            'isbn' => '9780132350884',
-            'category' => 'Technology',
-            'year' => 2008,
-            'description' => 'Even bad code can function. But if code isn\'t clean, it can bring a development organization to its knees. Every year, countless hours and significant resources are lost because of poorly written code. But it doesn\'t have to be that way.',
-            'cover_image' => 'https://images-na.ssl-images-amazon.com/images/I/41xSh4s1LmL._SX327_BO1,204,203,200_.jpg',
-            'total_copies' => 5,
-            'available_copies' => 3,
-            'status' => 'available'
-        ],
-        [
-            'title' => 'Sapiens: A Brief History of Humankind',
-            'author' => 'Yuval Noah Harari',
-            'isbn' => '9780062316097',
-            'category' => 'History',
-            'year' => 2011,
-            'description' => '100,000 years ago, at least six human species inhabited the earth. Today there is only one. Us. Homo sapiens. How did our species succeed in the battle for dominance? How did our foraging ancestors come together to create cities and kingdoms?',
-            'cover_image' => 'https://images-na.ssl-images-amazon.com/images/I/41yu2qXhXXL._SX324_BO1,204,203,200_.jpg',
-            'total_copies' => 4,
-            'available_copies' => 3,
-            'status' => 'available'
-        ],
-        [
-            'title' => 'A Brief History of Time',
-            'author' => 'Stephen Hawking',
-            'isbn' => '9780553380163',
-            'category' => 'Science',
-            'year' => 1988,
-            'description' => 'A landmark volume in science writing by one of the great minds of our time, Stephen Hawking\'s book explores the most complex theories of cosmology, from the Big Bang to black holes, in accessible language for general readers.',
-            'cover_image' => 'https://images-na.ssl-images-amazon.com/images/I/51+GyD2aI5L._SX331_BO1,204,203,200_.jpg',
-            'total_copies' => 3,
-            'available_copies' => 2,
-            'status' => 'available'
-        ],
-        [
-            'title' => 'The Design of Everyday Things',
-            'author' => 'Don Norman',
-            'isbn' => '9780465050659',
-            'category' => 'Design',
-            'year' => 1988,
-            'description' => 'Even the smartest among us can feel inept as we try to figure out which joint to pull or push on a door, or whether to turn, push or pull a faucet. The Design of Everyday Things shows that usable, satisfying design is possible with a few rules.',
-            'cover_image' => 'https://images-na.ssl-images-amazon.com/images/I/51Dl39IG8mL._SX322_BO1,204,203,200_.jpg',
-            'total_copies' => 3,
-            'available_copies' => 3,
-            'status' => 'available'
-        ],
-        [
-            'title' => 'Steve Jobs',
-            'author' => 'Walter Isaacson',
-            'isbn' => '9781451648539',
-            'category' => 'Biography',
-            'year' => 2011,
-            'description' => 'Based on more than forty interviews with Steve Jobs conducted over two years, Walter Isaacson has written a riveting story of the roller-coaster life and searingly intense personality of a creative entrepreneur whose passion revolutionized six industries.',
-            'cover_image' => 'https://images-na.ssl-images-amazon.com/images/I/41dK7eB7dSL._SX326_BO1,204,203,200_.jpg',
-            'total_copies' => 2,
-            'available_copies' => 1,
-            'status' => 'available'
-        ],
-        [
-            'title' => 'Calculus Made Easy',
-            'author' => 'Silvanus P. Thompson',
-            'isbn' => '9780312185480',
-            'category' => 'Mathematics',
-            'year' => 1910,
-            'description' => 'Calculus Made Easy has long been the most popular calculus primer, and this major revision of the classic math text introduces the beautiful complexities of derivatives and integrals to general students in an intuitive, non-threatening manner.',
-            'cover_image' => 'https://images-na.ssl-images-amazon.com/images/I/51nZea0W2eL._SX331_BO1,204,203,200_.jpg',
-            'total_copies' => 3,
-            'available_copies' => 3,
-            'status' => 'available'
-        ],
-        [
-            'title' => 'To Kill a Mockingbird',
-            'author' => 'Harper Lee',
-            'isbn' => '9780061120084',
-            'category' => 'Fiction',
-            'year' => 1960,
-            'description' => 'Compassionate, dramatic, and deeply moving, To Kill a Mockingbird takes readers to the roots of human behavior - to innocence and experience, kindness and cruelty, love and hatred, humor and pathos. This classic has sold over 40 million copies.',
-            'cover_image' => 'https://images-na.ssl-images-amazon.com/images/I/71FxgtfkcQL.jpg',
-            'total_copies' => 4,
-            'available_copies' => 4,
-            'status' => 'available'
-        ],
-        [
-            'title' => 'The Pragmatic Programmer',
-            'author' => 'David Thomas & Andrew Hunt',
-            'isbn' => '9780135957059',
-            'category' => 'Technology',
-            'year' => 2019,
-            'description' => 'The Pragmatic Programmer is one of those rare tech books you will read, re-read, and read again over the years. Whether you’re new to the field or an experienced practitioner, you’ll come away with fresh insights on a regular basis.',
-            'cover_image' => 'https://images-na.ssl-images-amazon.com/images/I/51IA4hT62KL._SX396_BO1,204,203,200_.jpg',
-            'total_copies' => 2,
-            'available_copies' => 2,
-            'status' => 'available'
-        ]
-    ];
+    $books = [];
 
     $stmtBook = $pdo->prepare("INSERT INTO books (title, author, isbn, category, year, description, cover_image, total_copies, available_copies, status) 
         VALUES (:title, :author, :isbn, :category, :year, :description, :cover_image, :total_copies, :available_copies, :status)");
@@ -213,48 +116,7 @@ try {
 
     // 5. Seed Transactions (Loans)
     echo "Seeding transactions...\n";
-    $transactions = [
-        [
-            'transaction_id' => 'TXN-2026-0001',
-            'user_id' => $juanId, // Juan
-            'book_id' => 1,       // Clean Code (available_copies was decremented)
-            'borrow_date' => date('Y-m-d', strtotime('-25 days')),
-            'due_date' => date('Y-m-d', strtotime('-11 days')), // Overdue by 11 days
-            'return_date' => null,
-            'renewals' => 0,
-            'status' => 'overdue'
-        ],
-        [
-            'transaction_id' => 'TXN-2026-0002',
-            'user_id' => $juanId, // Juan
-            'book_id' => 2,       // Sapiens
-            'borrow_date' => date('Y-m-d', strtotime('-10 days')),
-            'due_date' => date('Y-m-d', strtotime('+4 days')),  // Active
-            'return_date' => null,
-            'renewals' => 0,
-            'status' => 'active'
-        ],
-        [
-            'transaction_id' => 'TXN-2026-0003',
-            'user_id' => $mariaId, // Maria
-            'book_id' => 3,       // A Brief History of Time
-            'borrow_date' => date('Y-m-d', strtotime('-30 days')),
-            'due_date' => date('Y-m-d', strtotime('-16 days')),
-            'return_date' => date('Y-m-d', strtotime('-16 days')), // Completed on time
-            'renewals' => 1,
-            'status' => 'completed'
-        ],
-        [
-            'transaction_id' => 'TXN-2026-0004',
-            'user_id' => $mariaId, // Maria
-            'book_id' => 5,       // Steve Jobs
-            'borrow_date' => date('Y-m-d', strtotime('-5 days')),
-            'due_date' => date('Y-m-d', strtotime('+9 days')), // Active
-            'return_date' => null,
-            'renewals' => 0,
-            'status' => 'active'
-        ]
-    ];
+    $transactions = [];
 
     $stmtTxn = $pdo->prepare("INSERT INTO transactions (transaction_id, user_id, book_id, borrow_date, due_date, return_date, renewals, status) 
         VALUES (:transaction_id, :user_id, :book_id, :borrow_date, :due_date, :return_date, :renewals, :status)");
@@ -274,26 +136,7 @@ try {
 
     // 6. Seed Fines
     echo "Seeding fines...\n";
-    $fines = [
-        [
-            'fine_id' => 'FIN-2026-0001',
-            'user_id' => $juanId, // Juan
-            'transaction_id' => 1, // Clean Code (Transaction #1, overdue by 11 days)
-            'amount' => 55.00,    // 11 days * ₱5.00/day
-            'reason' => 'Clean Code book returned late/still overdue by 11 days.',
-            'status' => 'unpaid',
-            'paid_date' => null
-        ],
-        [
-            'fine_id' => 'FIN-2026-0002',
-            'user_id' => $mariaId, // Maria
-            'transaction_id' => 3, // Overdue by 4 days in the past and then settled
-            'amount' => 20.00,    // 4 days * ₱5.00
-            'reason' => 'A Brief History of Time returned 4 days overdue.',
-            'status' => 'paid',
-            'paid_date' => date('Y-m-d', strtotime('-16 days'))
-        ]
-    ];
+    $fines = [];
 
     $stmtFine = $pdo->prepare("INSERT INTO fines (fine_id, user_id, transaction_id, amount, reason, status, paid_date) 
         VALUES (:fine_id, :user_id, :transaction_id, :amount, :reason, :status, :paid_date)");
@@ -313,20 +156,6 @@ try {
     // 7. Seed Notifications
     echo "Seeding notifications...\n";
     $notifications = [
-        [
-            'user_id' => $juanId,
-            'title' => 'Book Overdue Warning!',
-            'message' => 'Your borrowed book "Clean Code" was due on ' . date('F j, Y', strtotime('-11 days')) . '. Please return it to avoid further fines.',
-            'type' => 'overdue',
-            'is_read' => false
-        ],
-        [
-            'user_id' => $juanId,
-            'title' => 'Upcoming Due Date',
-            'message' => 'Your borrowed book "Sapiens" is due on ' . date('F j, Y', strtotime('+4 days')) . '. Please return or renew it in time.',
-            'type' => 'due_reminder',
-            'is_read' => true
-        ],
         [
             'user_id' => $juanId,
             'title' => 'Welcome to Balingasag Public Library',

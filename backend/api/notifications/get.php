@@ -16,7 +16,8 @@ try {
     $action = $_GET['action'] ?? $_POST['action'] ?? '';
     
     if ($action === 'mark_read') {
-        $id = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : 0);
+        $input = Utils::getJsonInput();
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : (isset($input['id']) ? (int)$input['id'] : 0));
         if ($id > 0) {
             $stmtUpdate = $db->prepare("UPDATE notifications SET is_read = TRUE WHERE id = :id AND user_id = :user_id");
             $stmtUpdate->execute([':id' => $id, ':user_id' => $userId]);

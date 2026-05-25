@@ -14,13 +14,92 @@ export interface BookDetails {
 
 const mapCategory = (categoryStr?: string): string => {
   if (!categoryStr) return 'Fiction';
-  const cat = categoryStr.toLowerCase();
-  if (cat.includes('science')) return 'Science';
-  if (cat.includes('history')) return 'History';
-  if (cat.includes('biography') || cat.includes('autobiography')) return 'Biography';
-  if (cat.includes('philosophy')) return 'Philosophy';
-  if (cat.includes('technology') || cat.includes('computer') || cat.includes('internet') || cat.includes('programming')) return 'Technology';
-  if (cat.includes('children') || cat.includes('juvenile')) return 'Children';
+  const cat = categoryStr.toLowerCase().trim();
+
+  // 1. Children / Juvenile
+  if (
+    cat.includes('children') || 
+    cat.includes('juvenile') || 
+    cat.includes('kids') || 
+    cat.includes('nursery') || 
+    cat.includes('fairy tales')
+  ) {
+    return 'Children';
+  }
+
+  // 2. Science
+  if (
+    cat.includes('science') || 
+    cat.includes('mathematics') || 
+    cat.includes('physics') || 
+    cat.includes('chemistry') || 
+    cat.includes('biology') || 
+    cat.includes('nature') || 
+    cat.includes('medicine') ||
+    cat.includes('medical') ||
+    cat.includes('astronomy') ||
+    cat.includes('earth sciences')
+  ) {
+    return 'Science';
+  }
+
+  // 3. History
+  if (
+    cat.includes('history') || 
+    cat.includes('historical') || 
+    cat.includes('archaeology') || 
+    cat.includes('social science') ||
+    cat.includes('political science') ||
+    cat.includes('anthropology') ||
+    cat.includes('geography') ||
+    cat.includes('travel')
+  ) {
+    return 'History';
+  }
+
+  // 4. Biography
+  if (
+    cat.includes('biography') || 
+    cat.includes('autobiography') || 
+    cat.includes('memoir') ||
+    cat.includes('personal memoirs')
+  ) {
+    return 'Biography';
+  }
+
+  // 5. Philosophy
+  if (
+    cat.includes('philosophy') || 
+    cat.includes('ethics') || 
+    cat.includes('logic') || 
+    cat.includes('religion') || 
+    cat.includes('theology') ||
+    cat.includes('spirituality') ||
+    cat.includes('self-help') ||
+    cat.includes('psychology') ||
+    cat.includes('mind') ||
+    cat.includes('body & spirit')
+  ) {
+    return 'Philosophy';
+  }
+
+  // 6. Technology
+  if (
+    cat.includes('technology') || 
+    cat.includes('computer') || 
+    cat.includes('internet') || 
+    cat.includes('programming') || 
+    cat.includes('software') || 
+    cat.includes('engineering') || 
+    cat.includes('computers') ||
+    cat.includes('information technology') ||
+    cat.includes('business') ||
+    cat.includes('economics') ||
+    cat.includes('finance')
+  ) {
+    return 'Technology';
+  }
+
   return 'Fiction'; // Default fallback
 };
 

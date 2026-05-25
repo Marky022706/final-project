@@ -25,6 +25,7 @@ import AdminBooks from './pages/admin/AdminBooks';
 import AdminArchivedBooks from './pages/admin/AdminArchivedBooks';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminTransactions from './pages/admin/AdminTransactions';
+import AdminReservations from './pages/admin/AdminReservations';
 import AdminFines from './pages/admin/AdminFines';
 import AdminReports from './pages/admin/AdminReports';
 
@@ -89,6 +90,14 @@ export const App: React.FC = () => {
               element={
                 <AdminRoute>
                   <AdminTransactions />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/reservations"
+              element={
+                <AdminRoute>
+                  <AdminReservations />
                 </AdminRoute>
               }
             />

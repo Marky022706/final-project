@@ -576,7 +576,7 @@ export const AdminBooks: React.FC = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">Genre Category</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">Genre Category *</label>
               <select name="category" value={formData.category} onChange={handleInputChange} className="input-field text-sm font-semibold text-slate-600">
                 {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
               </select>
@@ -669,7 +669,7 @@ export const AdminBooks: React.FC = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">Genre Category</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">Genre Category *</label>
               <select name="category" value={formData.category} onChange={handleInputChange} className="input-field text-sm font-semibold text-slate-600">
                 {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
               </select>
