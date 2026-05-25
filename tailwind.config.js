@@ -10,6 +10,17 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         heading: ['Outfit', 'sans-serif'],
       },
+      fontSize: {
+        'xs': ['12px', { lineHeight: '18px' }],
+        'sm': ['14px', { lineHeight: '20px' }],
+        'base': ['16px', { lineHeight: '24px' }],
+        'lg': ['18px', { lineHeight: '28px' }],
+        'xl': ['20px', { lineHeight: '28px' }],
+        '2xl': ['24px', { lineHeight: '32px' }],
+        '3xl': ['30px', { lineHeight: '38px' }],
+        '4xl': ['36px', { lineHeight: '44px' }],
+        '5xl': ['48px', { lineHeight: '56px' }],
+      },
       colors: {
         primary: {
           50: '#f0fdf4',

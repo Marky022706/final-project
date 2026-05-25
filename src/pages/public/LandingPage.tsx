@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { Book, Library, Search, Clock, ShieldCheck, HelpCircle, MessageSquare, Mail, Phone, ChevronLeft, ChevronRight, Filter, Menu, X } from 'lucide-react';
+import { Book, Search, Clock, ShieldCheck, HelpCircle, MessageSquare, Mail, Phone, ChevronLeft, ChevronRight, Filter, Menu, X, MapPin } from 'lucide-react';
 import api from '../../lib/api';
 import BookCard from '../../components/common/BookCard';
 import type { BookItem } from '../../components/common/BookCard';
@@ -875,20 +875,160 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-primary-950 text-primary-200 px-6 py-12 text-center border-t border-primary-900/60 text-sm">
-        <div className="max-w-6xl mx-auto space-y-4">
-          <div className="flex items-center justify-center gap-2 text-white font-bold">
-            <Library className="h-5 w-5 text-emerald-400" />
-            <span>Balingasag Public Library System</span>
-          </div>
-          <p className="text-xs text-primary-400 font-medium">
-            © {new Date().getFullYear()} Balingasag Municipal Library. All rights reserved.
-          </p>
-          <div className="border-t border-primary-800/50 pt-4 mt-4">
-            <p className="text-[10px] text-primary-500 font-semibold uppercase tracking-wider mb-1.5">Development Team</p>
-            <p className="text-xs text-primary-300 font-medium">
-              Raymark Jay Acierto &nbsp;·&nbsp; Althea Roa
+      <footer className="bg-primary-950 text-emerald-100/90 px-6 sm:px-12 py-16 border-t border-primary-900/60 font-sans">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 text-left">
+          
+          {/* Column 1: Brand Info */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-emerald-500/40 flex-shrink-0 flex items-center justify-center bg-white shadow-sm">
+                <img src={logoImg} alt="Library Logo" className="h-full w-full object-cover rounded-full" />
+              </div>
+              <div>
+                <h3 className="font-heading font-black tracking-tight text-emerald-400 text-lg leading-tight uppercase m-0">
+                  Balingasag
+                </h3>
+                <span className="font-heading font-black text-white text-base tracking-widest leading-none uppercase block mt-0.5">
+                  Public Library
+                </span>
+              </div>
+            </div>
+            <p className="text-sm text-primary-200/80 leading-relaxed font-medium">
+              A modern digital haven and municipal sanctuary of knowledge nestled in Balingasag, Misamis Oriental where learning meets community.
             </p>
+            {/* Social Icons */}
+            <div className="flex items-center gap-3">
+              <a href="https://www.facebook.com/atina2022" target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-full border border-primary-800/40 flex items-center justify-center text-white hover:text-emerald-400 hover:border-emerald-400 hover:bg-white/5 transition-all" aria-label="Facebook">
+                <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24">
+                  <path d="M9 8H7v3h2v9h4v-9h3.6l.4-3H13V6c0-.5.5-1 1-1h2V2h-3c-3 0-5 2-5 5v1z"/>
+                </svg>
+              </a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-full border border-primary-800/40 flex items-center justify-center text-white hover:text-emerald-400 hover:border-emerald-400 hover:bg-white/5 transition-all" aria-label="Instagram">
+                <svg className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                </svg>
+              </a>
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-full border border-primary-800/40 flex items-center justify-center text-white hover:text-emerald-400 hover:border-emerald-400 hover:bg-white/5 transition-all" aria-label="YouTube">
+                <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24">
+                  <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.107C19.53 3.5 12 3.5 12 3.5s-7.53 0-9.388.556a3.003 3.003 0 0 0-2.11 2.107C0 8.022 0 12 0 12s0 3.978.502 5.837a3.003 3.003 0 0 0 2.11 2.107C4.47 20.5 12 20.5 12 20.5s7.53 0 9.388-.556a3.003 3.003 0 0 0 2.11-2.107C24 15.978 24 12 24 12s0-3.978-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+              </a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-full border border-primary-800/40 flex items-center justify-center text-white hover:text-emerald-400 hover:border-emerald-400 hover:bg-white/5 transition-all" aria-label="X (Twitter)">
+                <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          {/* Column 2: Quick Links */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-heading font-bold text-lg text-white tracking-wide uppercase m-0">
+                Quick Links
+              </h3>
+              <div className="w-12 h-[2.5px] bg-emerald-500 mt-1.5"></div>
+            </div>
+            <ul className="space-y-2.5 text-sm font-medium list-none p-0 m-0">
+              <li>
+                <a href="#home" className="text-primary-200/80 hover:text-white transition-colors">Home</a>
+              </li>
+              <li>
+                <a href="#catalog-preview" className="text-primary-200/80 hover:text-white transition-colors">Catalog</a>
+              </li>
+              <li>
+                <a href="#about-us" className="text-primary-200/80 hover:text-white transition-colors">About Us</a>
+              </li>
+              <li>
+                <a href="#contact-us" className="text-primary-200/80 hover:text-white transition-colors">Contact Us</a>
+              </li>
+              <li>
+                <Link to="/login" className="text-primary-200/80 hover:text-white transition-colors">Portal Login</Link>
+              </li>
+              <li>
+                <Link to="/signup" className="text-primary-200/80 hover:text-white transition-colors">Create Account</Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 3: Get in Touch */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-heading font-bold text-lg text-white tracking-wide uppercase m-0">
+                Get in Touch
+              </h3>
+              <div className="w-12 h-[2.5px] bg-emerald-500 mt-1.5"></div>
+            </div>
+            <ul className="space-y-3.5 text-sm text-primary-200/80 font-medium list-none p-0 m-0">
+              <li className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-emerald-400 mt-0.5 flex-shrink-0" />
+                <span>Balingasag, Misamis Oriental, Philippines</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <Phone className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+                <a href="tel:+639552450503" className="hover:text-white transition-colors">+63 955 245 0503</a>
+              </li>
+              <li className="flex items-center gap-3">
+                <Mail className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+                <a href="mailto:raymarkacierto27@gmail.com" className="hover:text-white transition-colors">raymarkacierto27@gmail.com</a>
+              </li>
+              <li className="flex items-start gap-3">
+                <Clock className="h-5 w-5 text-emerald-400 mt-0.5 flex-shrink-0" />
+                <span>Mon - Fri: 8:00 AM - 5:00 PM</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 4: Find Us */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-heading font-bold text-lg text-white tracking-wide uppercase m-0">
+                Find Us
+              </h3>
+              <div className="w-12 h-[2.5px] bg-emerald-500 mt-1.5"></div>
+            </div>
+            <div className="space-y-3">
+              {/* Google Maps embed */}
+              <div className="rounded-xl overflow-hidden border border-emerald-500/20 shadow-lg bg-primary-900/40 relative">
+                <iframe 
+                  src="https://maps.google.com/maps?q=Balingasag%20Public%20Library%2C%20Balingasag%2C%20Misamis%20Oriental%2C%20Philippines&t=&z=16&ie=UTF8&iwloc=&output=embed" 
+                  className="w-full h-[120px] border-0 block" 
+                  allowFullScreen 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Library Google Map"
+                />
+              </div>
+              <a 
+                href="https://www.google.com/maps?q=Balingasag%20Public%20Library%2C%20Balingasag%2C%20Misamis%20Oriental%2C%20Philippines"
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+              >
+                Get Directions <span className="text-xs">→</span>
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Development Team */}
+        <div className="max-w-7xl mx-auto border-primary-900/60 mt-12 pt-6 text-center">
+          <p className="text-[10px] text-white-400 font-bold uppercase tracking-wider mb-1.5">Development Team</p>
+          <p className="text-xs text-primary-300 font-medium">
+            Raymark Jay Acierto &nbsp;·&nbsp; Althea Roa
+          </p>
+        </div>
+
+        {/* Bottom copyright row */}
+        <div className="max-w-7xl mx-auto border-t border-primary-900/60 mt-6 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-primary-300/80 gap-4">
+          <p className="m-0">© {new Date().getFullYear()} Balingasag Municipal Library. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <span className="text-primary-900/60">|</span>
+            <Link to="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</Link>
           </div>
         </div>
       </footer>

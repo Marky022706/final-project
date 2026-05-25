@@ -10,8 +10,16 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif; 
   }
 
-  h1,
-  h2,
+  h1 {
+    font-family: 'Outfit', sans-serif;
+    @apply text-[32px] md:text-[48px] font-extrabold leading-tight;
+  }
+
+  h2 {
+    font-family: 'Outfit', sans-serif;
+    @apply text-[24px] md:text-[32px] font-extrabold leading-snug;
+  }
+
   h3,
   h4,
   h5,
@@ -19,12 +27,20 @@
     font-family: 'Outfit', sans-serif;
   }
 
+  button, .btn {
+    @apply text-[14px] md:text-[16px] font-bold;
+  }
+
+  .footnote, .caption {
+    @apply text-[12px] md:text-[14px] leading-normal;
+  }
+
   html {
     scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-slate-50 text-slate-800 antialiased min-h-screen transition-colors duration-200;
+    @apply bg-slate-50 text-slate-800 text-[16px] md:text-[18px] leading-relaxed antialiased min-h-screen transition-colors duration-200;
   }
 
   /* Custom Scrollbar */

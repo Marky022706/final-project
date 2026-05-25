@@ -9,6 +9,8 @@ import AdminRoute from './components/layout/AdminRoute';
 
 // Page Imports
 import LandingPage from './pages/public/LandingPage';
+import PrivacyPolicy from './pages/public/PrivacyPolicy';
+import TermsOfService from './pages/public/TermsOfService';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
 import MemberDashboard from './pages/member/MemberDashboard';
@@ -39,6 +41,8 @@ export const App: React.FC = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
 
           {/* Member Protected Portal Routes */}
           <Route element={<DashboardLayout />}>

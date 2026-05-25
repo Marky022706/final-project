@@ -1,5 +1,5 @@
 // src/context/ToastContext.tsx
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { AlertCircle, CheckCircle, AlertTriangle, X } from 'lucide-react';
 
 export type ToastType = 'success' | 'warning' | 'error' | 'info';
@@ -38,60 +38,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const warn = useCallback((msg: string) => addToast(msg, 'warning'), [addToast]);
   const info = useCallback((msg: string) => addToast(msg, 'info'), [addToast]);
 
-  // Hook into console.warn and console.error globally to turn them into UI notifications
-  useEffect(() => {
-    const originalWarn = console.warn;
-    const originalError = console.error;
-
-    // console.warn = (...args) => {
-    //   originalWarn(...args);
-    //   const message = args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ');
-
-    //   // Filter out framework dev noise to prevent UI alert spam
-    //   if (
-    //     message.includes('Warning:') ||
-    //     message.includes('react-dom') ||
-    //     message.includes('react-router') ||
-    //     message.includes('recharts') ||
-    //     message.includes('Vite') ||
-    //     message.includes('HMR') ||
-    //     message.includes('lucide-react') ||
-    //     message.includes('tailwind')
-    //   ) {
-    //     return;
-    //   }
-
-    //   warn(message);
-    // };
-
-    console.error = (...args) => {
-      originalError(...args);
-      const message = args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ');
-
-      // Filter out framework dev noise to prevent UI alert spam
-      if (
-        message.includes('Warning:') ||
-        message.includes('react-dom') ||
-        message.includes('react-router') ||
-        message.includes('recharts') ||
-        message.includes('Download the React DevTools') ||
-        message.includes('Google Books API failed') ||
-        message.includes('Failed to load public stats') ||
-        message.includes('Login Process Failure') ||
-        message.includes('Session validation failed') ||
-        message.includes('Request failed with status code 401')
-      ) {
-        return;
-      }
-
-      error(message);
-    };
-
-    return () => {
-      console.warn = originalWarn;
-      console.error = originalError;
-    };
-  }, [warn, error]);
+  // Hook into console.warn and console.error globally was removed to prevent console warnings/errors from triggering UI notifications.
 
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));

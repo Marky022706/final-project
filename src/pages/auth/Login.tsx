@@ -357,12 +357,12 @@ export const Login: React.FC = () => {
                   onChange={(e) => setAgreementChecked(e.target.checked)}
                   className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 transition-colors duration-150 cursor-pointer"
                 />
-                <label htmlFor="agreement" className="text-xs text-slate-500 font-semibold select-none leading-normal">
+                <label htmlFor="agreement" className="text-[11px] text-slate-500 font-semibold select-none leading-normal">
                   I agree to the{' '}
                   <button
                     type="button"
                     onClick={() => handleOpenPopup('privacy')}
-                    className="text-emerald-600 font-bold hover:underline inline-block focus:outline-none font-sans"
+                    className="text-[11px] text-emerald-600 font-bold hover:underline inline-block focus:outline-none font-sans"
                   >
                     Privacy Policy
                   </button>{' '}
@@ -370,7 +370,7 @@ export const Login: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleOpenPopup('terms')}
-                    className="text-emerald-600 font-bold hover:underline inline-block focus:outline-none font-sans"
+                    className="text-[11px] text-emerald-600 font-bold hover:underline inline-block focus:outline-none font-sans"
                   >
                     Terms of Agreement
                   </button>
