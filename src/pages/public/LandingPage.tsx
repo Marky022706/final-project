@@ -113,6 +113,30 @@ export const LandingPage: React.FC = () => {
     };
   }, []);
 
+  // Scroll-reveal fade-in / fade-out observer
+  useEffect(() => {
+    const revealElements = document.querySelectorAll(
+      '.scroll-reveal, .scroll-reveal-stagger, .scroll-reveal-left, .scroll-reveal-right, .scroll-reveal-scale'
+    );
+
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          } else {
+            entry.target.classList.remove('is-visible');
+          }
+        });
+      },
+      { root: null, threshold: 0.15 }
+    );
+
+    revealElements.forEach((el) => revealObserver.observe(el));
+
+    return () => revealObserver.disconnect();
+  }, []);
+
   // --- Public Stats ---
   const LIBRARY_ESTABLISHED_YEAR = 1991;
   const yearsOfService = new Date().getFullYear() - LIBRARY_ESTABLISHED_YEAR;
@@ -436,7 +460,7 @@ export const LandingPage: React.FC = () => {
         {/* Soft decorative blur circle on top of overlay */}
         <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-72 h-72 rounded-full bg-emerald-500/10 blur-3xl z-10" />
 
-        <div className="max-w-4xl mx-auto space-y-6 relative z-20">
+        <div className="max-w-4xl mx-auto space-y-6 relative z-20 scroll-reveal">
           <span className="px-3 py-1 bg-emerald-500/20 border border-emerald-400/20 rounded-full text-emerald-300 text-xs font-bold uppercase tracking-wider">
             Balingasag Municipal Public Library
           </span>
@@ -465,7 +489,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Info values banner */}
-      <section id="quick-info" className="max-w-7xl mx-auto w-full px-6 -mt-8 relative z-20 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section id="quick-info" className="max-w-7xl mx-auto w-full px-6 -mt-8 relative z-20 grid grid-cols-1 md:grid-cols-3 gap-6 scroll-reveal-stagger">
         <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/40 rounded-2xl p-6 flex gap-4 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-100/30 hover:border-emerald-200 transition-all duration-300 group">
           <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 flex-shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
             <Clock className="h-6 w-6" />
@@ -506,7 +530,7 @@ export const LandingPage: React.FC = () => {
 
       {/* Catalog Preview */}
       <section id="catalog-preview" className="max-w-7xl mx-auto w-full px-6 py-16 flex-1 space-y-8 scroll-mt-24">
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-2 scroll-reveal">
           <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">
             Explore our Curated Book Registry
           </h2>
@@ -702,7 +726,7 @@ export const LandingPage: React.FC = () => {
       {/* About Us Comprehensive Section */}
       <section id="about-us" className="bg-white border-t border-b border-slate-100 py-16 scroll-mt-24">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center text-left">
-          <div className="space-y-6">
+          <div className="space-y-6 scroll-reveal-left">
             <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-[10px] font-bold uppercase tracking-wider">
               Our Legacy & Mission
             </span>
@@ -737,7 +761,7 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="relative rounded-2xl overflow-hidden shadow-xl border border-slate-100 h-80 bg-slate-100 group">
+          <div className="relative rounded-2xl overflow-hidden shadow-xl border border-slate-100 h-80 bg-slate-100 group scroll-reveal-right">
             {aboutImages.map((img, index) => (
               <img
                 key={index}
@@ -805,7 +829,7 @@ export const LandingPage: React.FC = () => {
       {/* Contact Us Comprehensive Section */}
       <section id="contact-us" className="bg-slate-50 py-16 scroll-mt-24">
         <div className="max-w-7xl mx-auto px-6 space-y-12">
-          <div className="text-center space-y-3">
+          <div className="text-center space-y-3 scroll-reveal">
             <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-[10px] font-bold uppercase tracking-wider">
               Get In Touch
             </span>
@@ -817,7 +841,7 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 scroll-reveal-stagger">
             {/* Contact Details Card 1 - Gmail Direct Link */}
             <a
               href="mailto:raymarkacierto27@gmail.com"

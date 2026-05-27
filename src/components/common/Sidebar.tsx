@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import logoImg from '../../assets/logo.png';
 import { 
   LayoutDashboard, 
-  BookOpen, 
+  Book, 
   BookMarked, 
   History, 
   Wallet, 
@@ -35,7 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const menuItems = isAdmin
     ? [
         { label: 'Admin Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-        { label: 'Book Inventory', path: '/admin/books', icon: BookOpen },
+        { label: 'Book Inventory', path: '/admin/books', icon: Book },
         { label: 'Archive Books', path: '/admin/archived-books', icon: Archive },
         { label: 'Member Directory', path: '/admin/users', icon: Users },
         { label: 'Borrow Logs', path: '/admin/transactions', icon: ListOrdered },
@@ -45,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       ]
     : [
         { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-        { label: 'Book Catalog', path: '/catalog', icon: BookOpen },
+        { label: 'Book Catalog', path: '/catalog', icon: Book },
         { label: 'My Borrowed Books', path: '/my-books', icon: BookMarked },
         { label: 'Borrowing History', path: '/history', icon: History },
         { label: 'My Fines & Dues', path: '/fines', icon: Wallet },

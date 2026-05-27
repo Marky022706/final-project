@@ -44,9 +44,10 @@ export const LandingPage: React.FC = () => {
   return (
     <div id="home" className="min-h-screen bg-slate-50 gradient-bg flex flex-col scroll-smooth">
       {/* Header navbar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm px-6 py-4.5 flex items-center justify-between">
+            <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm px-6 py-4.5 flex items-center justify-between">
+
         <div className="flex items-center gap-3">
-          <div className="h-14 w-14 flex-shrink-0 flex items-center justify-center rounded-full overflow-hidden">
+          <div className="h-14 w-14 flex-shrink-0 flex items-center justify-center rounded-full overflow-hidden"> 
             <img src={logoImg} alt="Balingasag Municipal Library Logo" className="h-full w-full object-cover rounded-full" />
           </div>
           <div>
@@ -450,11 +451,11 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-primary-950 text-primary-200 px-6 py-12 text-center border-t border-primary-900/60 text-xs">
-        <div className="max-w-6xl mx-auto space-y-4">
+      <footer className="bg-primary-950 text-primary-200 px-6 py-6 text-center border-t border-primary-900/60 text-xs">
+        <div className="max-w-6xl mx-auto space-y-3">
           <div className="flex items-center justify-center gap-2 text-white font-bold">
-            <Library className="h-5 w-5 text-emerald-400" />
-            <span>Balingasag Public Library System</span>
+            <Library className="h-4 w-4 text-emerald-400" />
+            <span className="text-[13px]">Balingasag Public Library System</span>
           </div>
           <p className="text-[10px] text-primary-400 font-medium">
             © {new Date().getFullYear()} Balingasag Municipal Library. All rights reserved.

@@ -10,17 +10,6 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         heading: ['Outfit', 'sans-serif'],
       },
-      fontSize: {
-        'xs': ['12px', { lineHeight: '18px' }],
-        'sm': ['14px', { lineHeight: '20px' }],
-        'base': ['16px', { lineHeight: '24px' }],
-        'lg': ['18px', { lineHeight: '28px' }],
-        'xl': ['20px', { lineHeight: '28px' }],
-        '2xl': ['24px', { lineHeight: '32px' }],
-        '3xl': ['30px', { lineHeight: '38px' }],
-        '4xl': ['36px', { lineHeight: '44px' }],
-        '5xl': ['48px', { lineHeight: '56px' }],
-      },
       colors: {
         primary: {
           50: '#f0fdf4',
@@ -28,13 +17,26 @@ export default {
           200: '#bbf7d0',
           300: '#86efac',
           400: '#4ade80',
-          550: '#16a34a', // Municipal Emerald
+          550: '#16a34a',
           600: '#16a34a',
-          700: '#15803d', // Municipal Dark Green
-          800: '#166534', // Forest Green
-          900: '#14532d', // Deep Forest Green
+          700: '#15803d',
+          800: '#166534',
+          900: '#14532d',
           950: '#052e16',
-        }
+        },
+        emerald: {
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b981',
+          600: '#059669',
+          700: '#047857',
+          800: '#065f46',
+          900: '#064e3b',
+          950: '#022c22',
+        },
       },
       borderRadius: {
         '3xl': '1.5rem',
