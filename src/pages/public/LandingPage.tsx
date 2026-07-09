@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { Book, Search, Clock, ShieldCheck, HelpCircle, MessageSquare, Mail, Phone, ChevronLeft, ChevronRight, Filter, Menu, X, MapPin } from 'lucide-react';
+import { Book, Search, Clock, ShieldCheck, HelpCircle, MessageSquare, Mail, Phone, ChevronLeft, ChevronRight, Filter, Menu, X, MapPin, Check } from 'lucide-react';
 import api from '../../lib/api';
 import BookCard from '../../components/common/BookCard';
 import type { BookItem } from '../../components/common/BookCard';
@@ -72,7 +72,7 @@ export const LandingPage: React.FC = () => {
 
   // Dynamic section highlight observer
   useEffect(() => {
-    const sectionIds = ['hero', 'catalog-preview', 'about-us', 'contact-us'];
+    const sectionIds = ['hero', 'catalog-preview', 'how-to-access', 'about-us', 'contact-us'];
     
     const observerOptions = {
       root: null,
@@ -293,6 +293,16 @@ export const LandingPage: React.FC = () => {
               Catalog
             </a>
             <a
+              href="#how-to-access"
+              className={`text-xs font-extrabold transition-all duration-200 uppercase tracking-wider relative py-1.5 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-emerald-600 after:transform after:origin-left after:transition-transform after:duration-200 hover:after:scale-x-100 ${
+                activeSection === 'how-to-access'
+                  ? 'text-emerald-600 after:scale-x-100'
+                  : 'text-slate-500 hover:text-emerald-600 after:scale-x-0'
+              }`}
+            >
+              How to Access
+            </a>
+            <a
               href="#about-us"
               className={`text-xs font-extrabold transition-all duration-200 uppercase tracking-wider relative py-1.5 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-emerald-600 after:transform after:origin-left after:transition-transform after:duration-200 hover:after:scale-x-100 ${
                 activeSection === 'about-us'
@@ -401,6 +411,17 @@ export const LandingPage: React.FC = () => {
                 Catalog
               </a>
               <a
+                href="#how-to-access"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`text-sm font-bold uppercase tracking-wider flex items-center gap-3 py-3 px-3 rounded-xl transition-all duration-150 ${
+                  activeSection === 'how-to-access'
+                    ? 'text-emerald-700 bg-emerald-50 border-l-4 border-emerald-600 pl-2'
+                    : 'text-slate-500 hover:text-emerald-700 hover:bg-emerald-50/50'
+                }`}
+              >
+                How to Access
+              </a>
+              <a
                 href="#about-us"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`text-sm font-bold uppercase tracking-wider flex items-center gap-3 py-3 px-3 rounded-xl transition-all duration-150 ${
@@ -461,8 +482,8 @@ export const LandingPage: React.FC = () => {
         <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-72 h-72 rounded-full bg-emerald-500/10 blur-3xl z-10" />
 
         <div className="max-w-4xl mx-auto space-y-6 relative z-20 scroll-reveal">
-          <span className="px-3 py-1 bg-emerald-500/20 border border-emerald-400/20 rounded-full text-emerald-300 text-xs font-bold uppercase tracking-wider">
-            Balingasag Municipal Public Library
+          <span className="px-3.5 py-1.5 bg-emerald-950/40 border border-emerald-500/30 rounded-full text-emerald-400 text-xs font-bold uppercase tracking-wider">
+            BALINGASAG MUNICIPAL PUBLIC LIBRARY
           </span>
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
             Discover a World of Knowledge at Your Fingertips
@@ -473,14 +494,14 @@ export const LandingPage: React.FC = () => {
 
           <div className="flex items-center justify-center gap-4 pt-4">
             <Link
-              to="/login"
-              className="px-6 py-3.5 bg-white text-primary-900 hover:bg-emerald-50 text-sm font-bold rounded-xl shadow-lg transition-all duration-150"
+              to="/signup"
+              className="px-6 py-3.5 bg-white text-emerald-900 hover:bg-emerald-50 text-sm font-bold rounded-xl shadow-lg transition-all duration-150 active:scale-95"
             >
               Get Library Account
             </Link>
             <a
               href="#catalog-preview"
-              className="px-6 py-3.5 bg-emerald-600/30 hover:bg-emerald-600/40 text-emerald-100 text-sm font-bold rounded-xl border border-emerald-500/20 transition-all duration-150"
+              className="px-6 py-3.5 bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-100 text-sm font-bold rounded-xl border border-emerald-500/20 transition-all duration-150 active:scale-95"
             >
               Browse Catalog
             </a>
@@ -633,6 +654,122 @@ export const LandingPage: React.FC = () => {
             </button>
           </div>
         )}
+      </section>
+
+      {/* How to Access the Library Section */}
+      <section id="how-to-access" className="py-16 bg-slate-50 border-t border-b border-slate-100 scroll-mt-24">
+        <div className="max-w-7xl mx-auto px-6 text-center space-y-12">
+          
+          {/* Header */}
+          <div className="space-y-3 scroll-reveal">
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-[10px] text-emerald-600 font-extrabold uppercase tracking-wider mb-1">
+                Access Guide
+              </span>
+              <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight">
+                How to Access the Library
+              </h2>
+              <div className="w-12 h-1 bg-emerald-600 rounded-full mt-3"></div>
+            </div>
+            <p className="text-xs text-slate-500 font-medium max-w-md mx-auto">
+              Four simple steps stand between you and borrowing your next favorite book.
+            </p>
+          </div>
+
+          {/* Stepper Flow */}
+          <div className="relative max-w-5xl mx-auto py-8">
+            {/* Horizontal line for desktop */}
+            <div className="absolute top-[64px] left-[12%] right-[12%] h-[2px] bg-gradient-to-r from-emerald-100 via-emerald-400 to-emerald-100 hidden md:block z-0" />
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-4 relative z-10 scroll-reveal-stagger">
+              
+              {/* Step 1 */}
+              <div className="flex flex-col items-center text-center space-y-4 px-2">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full bg-emerald-700 border-4 border-white shadow-md flex items-center justify-center text-white text-lg font-black">
+                    1
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-500 border border-white flex items-center justify-center shadow-sm">
+                    <Check className="h-2.5 w-2.5 text-white stroke-[4px]" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-slate-800">Register Online</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed max-w-[200px] mx-auto">
+                    Create an account on our library portal and fill out your profile details.
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className="flex flex-col items-center text-center space-y-4 px-2">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full bg-emerald-700 border-4 border-white shadow-md flex items-center justify-center text-white text-lg font-black">
+                    2
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-500 border border-white flex items-center justify-center shadow-sm">
+                    <Check className="h-2.5 w-2.5 text-white stroke-[4px]" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-slate-800">Prepare Requirements</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed max-w-[200px] mx-auto">
+                    Prepare a valid student or government ID and proof of residency in Balingasag.
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="flex flex-col items-center text-center space-y-4 px-2">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full bg-emerald-700 border-4 border-white shadow-md flex items-center justify-center text-white text-lg font-black">
+                    3
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-500 border border-white flex items-center justify-center shadow-sm">
+                    <Check className="h-2.5 w-2.5 text-white stroke-[4px]" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-slate-800">Verify at Counter</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed max-w-[200px] mx-auto">
+                    Visit the library counter in person to verify your requirements and approve your account.
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 4 */}
+              <div className="flex flex-col items-center text-center space-y-4 px-2">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full bg-emerald-700 border-4 border-white shadow-md flex items-center justify-center text-white text-lg font-black">
+                    4
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-500 border border-white flex items-center justify-center shadow-sm">
+                    <Check className="h-2.5 w-2.5 text-white stroke-[4px]" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-slate-800">Start Borrowing</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed max-w-[200px] mx-auto">
+                    Claim your physical library card and start borrowing up to 3 books for 14 days.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Call to Action Button */}
+          <div className="pt-4 scroll-reveal-scale">
+            <Link
+              to="/signup"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-full shadow-lg shadow-emerald-100 hover:shadow-emerald-200 transition-all duration-150 active:scale-95 group"
+            >
+              <span>Get Your Library Account</span>
+              <span className="transition-transform duration-150 group-hover:translate-x-1">→</span>
+            </Link>
+          </div>
+
+        </div>
       </section>
 
       {/* Book details Modal overlay */}
