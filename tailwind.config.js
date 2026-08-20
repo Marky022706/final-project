@@ -7,8 +7,18 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         heading: ['Outfit', 'sans-serif'],
+      },
+      fontSize: {
+        // Standard Web Font Hierarchy
+        'h1': ['2.25rem', { lineHeight: '2.75rem', fontWeight: '800' }],      // 36px (2rem – 2.5rem)
+        'h2': ['1.75rem', { lineHeight: '2.25rem', fontWeight: '700' }],      // 28px (1.5rem – 2rem)
+        'h3': ['1.25rem', { lineHeight: '1.75rem', fontWeight: '600' }],      // 20px (1.125rem – 1.375rem)
+        'body': ['1rem', { lineHeight: '1.625rem', fontWeight: '400' }],       // 16px (1rem – 1.125rem)
+        'body-lg': ['1.125rem', { lineHeight: '1.75rem', fontWeight: '400' }], // 18px
+        'caption': ['0.8125rem', { lineHeight: '1.25rem' }],                   // 13px (0.75rem – 0.875rem)
+        'btn': ['0.9375rem', { lineHeight: '1.375rem', fontWeight: '600' }],   // 15px (0.875rem – 1rem)
       },
       colors: {
         primary: {

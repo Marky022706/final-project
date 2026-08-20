@@ -28,6 +28,15 @@ define('SMS_PROVIDER', 'local');
 define('SEMAPHORE_API_KEY', '');
 define('SMS_SENDER_NAME', 'Library');
 
+// Local AI Settings (LM Studio / Qwen Local Server)
+define('LOCAL_AI_BASE_URL', 'http://127.0.0.1:1234');
+define('LOCAL_AI_MODEL', 'qwen/qwen3-1.7b');
+define('LOCAL_AI_TIMEOUT', 45); // seconds
+
+// Gemini Cloud Fallback Settings
+define('GEMINI_API_KEY', getenv('GEMINI_API_KEY') ?: '');
+define('GEMINI_MODEL', getenv('GEMINI_MODEL') ?: 'gemini-1.5-flash');
+
 // JWT Security Keys (State-of-the-art HS256 HMAC Signatures)
 define('JWT_ACCESS_SECRET', 'balingasag_public_library_access_secret_2026_super_secure_key_987654321');
 define('JWT_REFRESH_SECRET', 'balingasag_public_library_refresh_secret_2026_super_secure_key_123456789');

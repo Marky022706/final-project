@@ -13,10 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $currentUser = Middleware::requireAuth();
 
 // Default to self profile
-$userId = isset($_GET['id']) ? (int)$_GET['id'] : $currentUser['id'];
+$userId = !empty($_GET['id']) ? $_GET['id'] : $currentUser['id'];
+
+$isStaff = in_array($currentUser['role'] ?? '', ['admin', 'superadmin']);
 
 // Access Control: Members cannot query other users
-if ($currentUser['role'] !== 'admin' && $userId !== $currentUser['id']) {
+if (!$isStaff && $userId !== $currentUser['id']) {
     Response::forbidden('You do not have permission to view this user profile.');
 }
 
@@ -24,9 +26,9 @@ try {
     $db = Database::getConnection();
     
     // Fetch profile
-    $stmt = $db->prepare("SELECT id, first_name, middle_name, last_name, email, role, phone, address, status, member_since, created_at FROM users WHERE id = :id");
+    $stmt = $db->prepare("SELECT id, first_name, middle_name, last_name, email, role, phone, address, status, member_since, created_at, qr_code FROM users WHERE id = :id");
     $stmt->execute([':id' => $userId]);
-    $user = $stmt->fetch();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$user) {
         Response::notFound('User profile not found.');
@@ -60,7 +62,7 @@ try {
         'unread_notifications' => $unreadNotifCount
     ];
     
-    Response::success($user, 'Profile retrieved successfully.');
+    Response::success($user, 'User profile fetched successfully.');
 
 } catch (PDOException $e) {
     Response::error('Server database error: ' . $e->getMessage());

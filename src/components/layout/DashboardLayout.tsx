@@ -41,7 +41,7 @@ export const DashboardLayout: React.FC = () => {
 
         {/* Content canvas */}
         <main className="flex-1 overflow-y-auto px-6 py-8 md:px-8">
-          <div className="max-w-7xl mx-auto w-full space-y-6">
+          <div className="max-w-[1600px] mx-auto w-full space-y-6">
             <Outlet />
           </div>
         </main>

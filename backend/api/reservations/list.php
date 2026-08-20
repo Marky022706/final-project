@@ -13,11 +13,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $currentUser = Middleware::requireAuth();
 
 $status = $_GET['status'] ?? '';
-$filterUserId = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
+$filterUserId = $_GET['user_id'] ?? null;
+
+$isStaff = in_array($currentUser['role'] ?? '', ['admin', 'superadmin']);
 
 $targetUserId = $currentUser['id'];
-if ($currentUser['role'] === 'admin') {
-    $targetUserId = $filterUserId > 0 ? $filterUserId : null;
+if ($isStaff) {
+    $targetUserId = !empty($filterUserId) ? $filterUserId : null;
 } else {
     $targetUserId = $currentUser['id'];
 }
@@ -29,7 +31,7 @@ try {
     $whereClauses = [];
     $params = [];
 
-    if ($targetUserId !== null) {
+    if (!empty($targetUserId)) {
         $whereClauses[] = "r.user_id = :user_id";
         $params[':user_id'] = $targetUserId;
     }
@@ -53,7 +55,6 @@ try {
             r.book_id,
             r.reservation_date,
             r.status,
-            r.notified,
             u.first_name,
             u.last_name,
             u.email,
@@ -73,13 +74,12 @@ try {
 
     $stmt = $db->prepare($sql);
     $stmt->execute($params);
-    $reservations = $stmt->fetchAll();
+    $reservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Calculate queue positions in real-time
     $processedReservations = [];
     foreach ($reservations as $res) {
         if ($res['status'] === 'pending') {
-            // Find how many pending/ready reservations were created for the same book BEFORE this one
             $stmtQueue = $db->prepare("
                 SELECT COUNT(*) FROM reservations 
                 WHERE book_id = :book_id 
@@ -93,7 +93,7 @@ try {
             $beforeCount = (int)$stmtQueue->fetchColumn();
             $res['queue_position'] = $beforeCount + 1;
         } else {
-            $res['queue_position'] = 0; // Not applicable for completed/cancelled/ready holds
+            $res['queue_position'] = 0;
         }
         $processedReservations[] = $res;
     }

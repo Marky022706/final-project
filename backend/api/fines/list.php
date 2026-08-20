@@ -21,8 +21,8 @@ try {
     $whereClauses = [];
     $params = [];
     
-    // Non-admins can ONLY see their own fines
-    if ($currentUser['role'] !== 'admin') {
+    // Non-admins / non-superadmins can ONLY see their own fines
+    if (!in_array($currentUser['role'] ?? '', ['admin', 'superadmin'])) {
         $whereClauses[] = "f.user_id = :user_id";
         $params[':user_id'] = $currentUser['id'];
     }
@@ -41,21 +41,22 @@ try {
     $sql = "
         SELECT 
             f.id, 
-            f.fine_id, 
+            CONCAT('FINE-', LPAD(f.id, 5, '0')) AS fine_id, 
             f.amount, 
             f.reason, 
             f.status, 
             f.created_at, 
-            f.paid_date,
+            f.paid_at,
+            f.paid_at AS paid_date,
             u.first_name, 
             u.last_name, 
             u.email,
-            b.title AS book_title,
+            COALESCE(b.title, 'General Library Fine') AS book_title,
             t.transaction_id
         FROM fines f
         JOIN users u ON f.user_id = u.id
-        JOIN transactions t ON f.transaction_id = t.id
-        JOIN books b ON t.book_id = b.id
+        LEFT JOIN transactions t ON f.transaction_id = t.id
+        LEFT JOIN books b ON t.book_id = b.id
         " . $whereSql . "
         ORDER BY f.status ASC, f.created_at DESC
     ";

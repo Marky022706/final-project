@@ -5,9 +5,10 @@ import { useAuth } from '../../hooks/useAuth';
 
 interface AdminRouteProps {
   children: React.ReactNode;
+  superAdminOnly?: boolean;
 }
 
-export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
+export const AdminRoute: React.FC<AdminRouteProps> = ({ children, superAdminOnly = false }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -25,9 +26,14 @@ export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (user?.role !== 'admin') {
-    // Non-admins bounced back to member dashboard
+  const isStaff = user?.role === 'admin' || user?.role === 'superadmin';
+
+  if (!isStaff) {
     return <Navigate to="/dashboard" replace />;
+  }
+
+  if (superAdminOnly && user?.role !== 'superadmin') {
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   return <>{children}</>;

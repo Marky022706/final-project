@@ -5,6 +5,9 @@ require_once __DIR__ . '/../../config/middleware.php';
 require_once __DIR__ . '/../../includes/response.php';
 require_once __DIR__ . '/../../includes/functions.php';
 
+// Handle CORS
+Middleware::handleCORS();
+
 // Accept GET or POST (for state changes)
 $currentUser = Middleware::requireAuth();
 $userId = $currentUser['id'];

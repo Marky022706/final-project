@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../includes/response.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/activity_logger.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     Response::error('Method not allowed. Only POST is supported.', 405);
@@ -34,16 +35,46 @@ try {
     $user = $stmt->fetch();
     
     if (!$user || !password_verify($password, $user['password_hash'])) {
+        // Log failed login attempt
+        if ($user) {
+            logActivity(
+                $user['id'],
+                'failed_login',
+                'Authentication',
+                "Failed login attempt for account: {$user['email']}"
+            );
+        }
+        
+        // Also log to system_logs for Super Admin
+        try {
+            $stmtLog = $db->prepare("INSERT INTO system_logs (log_type, severity, message, ip_address, user_agent) VALUES ('auth_failure', 'warning', :msg, :ip, :ua)");
+            $stmtLog->execute([
+                ':msg' => "Failed authentication attempt for email: $email",
+                ':ip' => $_SERVER['REMOTE_ADDR'] ?? null,
+                ':ua' => $_SERVER['HTTP_USER_AGENT'] ?? null
+            ]);
+        } catch (Exception $ignored) {}
+
         Response::error('Invalid email or password.', 401);
     }
     
-    if ($user['status'] !== 'active') {
+    // Check account status
+    if ($user['status'] === 'pending') {
+        Response::forbidden('Your account registration is still pending approval by the library administrator. Please allow up to 24 hours or visit the municipal library.');
+    }
+    if ($user['status'] === 'suspended') {
+        Response::forbidden('Your library account has been suspended due to overdue violations or municipal policy. Please contact library staff.');
+    }
+    if ($user['status'] === 'deactivated' || $user['status'] === 'inactive') {
         Response::forbidden('Your account is currently inactive. Please contact the administrator.');
+    }
+    if (!empty($user['deleted_at'])) {
+        Response::forbidden('Your account has been deleted. Please register for a new library card.');
     }
     
     // Prepare token payload
     $userPayload = [
-        'id' => (int)$user['id'],
+        'id' => $user['id'],
         'first_name' => $user['first_name'],
         'middle_name' => $user['middle_name'],
         'last_name' => $user['last_name'],
@@ -53,7 +84,7 @@ try {
     
     // Generate Tokens
     $accessToken = JWT::generateAccess($userPayload);
-    $refreshToken = JWT::generateRefresh(['id' => (int)$user['id']]);
+    $refreshToken = JWT::generateRefresh(['id' => $user['id']]);
     
     // Store hashed refresh token in database (for rotation & revocation)
     $tokenHash = hash('sha256', $refreshToken);
@@ -66,12 +97,20 @@ try {
         ':expires_at' => $expiresAt
     ]);
 
+    // Log successful login
+    logActivity(
+        $user['id'],
+        'login',
+        'Authentication',
+        "User logged in successfully: {$user['email']} ({$user['role']})"
+    );
+
     // Send payload
     Response::success([
         'accessToken' => $accessToken,
         'refreshToken' => $refreshToken,
         'user' => [
-            'id' => (int)$user['id'],
+            'id' => $user['id'],
             'first_name' => $user['first_name'],
             'middle_name' => $user['middle_name'],
             'last_name' => $user['last_name'],
@@ -79,9 +118,11 @@ try {
             'role' => $user['role'],
             'phone' => $user['phone'],
             'address' => $user['address'],
-            'member_since' => $user['member_since']
+            'status' => $user['status'],
+            'member_since' => $user['member_since'],
+            'qr_code' => $user['qr_code']
         ]
-    ], 'Authentication successful!');
+    ], 'Login successful.');
 
 } catch (PDOException $e) {
     Response::error('Server database error: ' . $e->getMessage());

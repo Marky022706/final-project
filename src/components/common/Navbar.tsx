@@ -2,23 +2,133 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../lib/api';
-import { Menu, Bell, Check, BookOpen, AlertTriangle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { 
+  Menu, 
+  Bell, 
+  Check, 
+  BookOpen, 
+  AlertTriangle, 
+  LogOut, 
+  ChevronRight, 
+  Home, 
+  LayoutDashboard 
+} from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import UserAccountDropdown from './UserAccountDropdown';
 
 interface NavbarProps {
   onMenuToggle: () => void;
 }
 
+interface BreadcrumbItem {
+  label: string;
+  path?: string;
+  icon?: React.ComponentType<{ className?: string }>;
+}
+
+const getBreadcrumbs = (pathname: string, role?: string): BreadcrumbItem[] => {
+  const isAdmin = role === 'admin' || pathname.startsWith('/admin');
+
+  if (isAdmin) {
+    const rootItem: BreadcrumbItem = { label: 'Admin', path: '/admin/dashboard', icon: Home };
+
+    switch (pathname) {
+      case '/admin/dashboard':
+        return [rootItem, { label: 'Dashboard', icon: LayoutDashboard }];
+      case '/admin/books':
+        return [rootItem, { label: 'Book Inventory' }];
+      case '/admin/archived-books':
+        return [rootItem, { label: 'Book Inventory', path: '/admin/books' }, { label: 'Archive Books' }];
+      case '/admin/users':
+        return [rootItem, { label: 'Member Directory' }];
+      case '/admin/transactions':
+        return [rootItem, { label: 'Borrow Logs' }];
+      case '/admin/reservations':
+        return [rootItem, { label: 'Reservations' }];
+      case '/admin/fines':
+        return [rootItem, { label: 'Fines Management' }];
+      case '/admin/reports':
+        return [rootItem, { label: 'Reports & Analytics' }];
+      case '/admin/attendance':
+        return [rootItem, { label: 'Attendance Records' }];
+      case '/admin/activity-log':
+        return [rootItem, { label: 'Activity Logs' }];
+      case '/admin/qr-scan':
+        return [rootItem, { label: 'QR Attendance Scan' }];
+      default: {
+        const segments = pathname.replace(/^\/admin\/?/, '').split('/').filter(Boolean);
+        const dynamicItems: BreadcrumbItem[] = [rootItem];
+        let accumulatedPath = '/admin';
+        segments.forEach((seg, index) => {
+          accumulatedPath += `/${seg}`;
+          const formatted = seg
+            .split('-')
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+          dynamicItems.push({
+            label: formatted,
+            path: index === segments.length - 1 ? undefined : accumulatedPath
+          });
+        });
+        return dynamicItems.length > 1 ? dynamicItems : [rootItem, { label: 'Dashboard' }];
+      }
+    }
+  }
+
+  // Member / User breadcrumbs
+  const memberRoot: BreadcrumbItem = { label: 'Portal', path: '/dashboard', icon: Home };
+  switch (pathname) {
+    case '/dashboard':
+      return [memberRoot, { label: 'Dashboard', icon: LayoutDashboard }];
+    case '/catalog':
+      return [memberRoot, { label: 'Book Catalog' }];
+    case '/my-books':
+      return [memberRoot, { label: 'My Borrowed Books' }];
+    case '/history':
+      return [memberRoot, { label: 'Borrowing History' }];
+    case '/fines':
+      return [memberRoot, { label: 'My Fines & Dues' }];
+    case '/notifications':
+      return [memberRoot, { label: 'Notifications' }];
+    case '/profile':
+      return [memberRoot, { label: 'My Profile' }];
+    case '/account-settings':
+      return [memberRoot, { label: 'Account Settings' }];
+    default: {
+      const segments = pathname.replace(/^\//, '').split('/').filter(Boolean);
+      const dynamicItems: BreadcrumbItem[] = [memberRoot];
+      let accumulatedPath = '';
+      segments.forEach((seg, index) => {
+        accumulatedPath += `/${seg}`;
+        const formatted = seg
+          .split('-')
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+        dynamicItems.push({
+          label: formatted,
+          path: index === segments.length - 1 ? undefined : accumulatedPath
+        });
+      });
+      return dynamicItems;
+    }
+  }
+};
+
 export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
-  const { user, refreshProfile } = useAuth();
+  const { user, refreshProfile, logout } = useAuth();
+  const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const breadcrumbs = getBreadcrumbs(location.pathname, user?.role);
 
   // Sync notifications unread count on startup and click
   const fetchNotifications = async () => {
-    if (!user) return;
+    const token = localStorage.getItem('balingasag_access_token');
+    if (!user || !token) return;
     try {
       const response = await api.get('/notifications/get');
       if (response.data && response.data.success) {
@@ -41,7 +151,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
     };
   }, [user]);
 
-  // Handle clicking outside to close dropdown
+  // Handle clicking outside to close notifications dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -51,6 +161,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleLogout = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const confirmLogout = () => {
+    setIsLogoutModalOpen(false);
+    logout();
+  };
 
   const handleMarkAsRead = async (id: number, event: React.MouseEvent) => {
     event.preventDefault();
@@ -69,7 +188,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   if (!user) return null;
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between h-24 px-6 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm shadow-slate-200/50">
+    <header className="sticky top-0 z-40 flex items-center justify-between h-20 md:h-24 px-6 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm shadow-slate-200/50">
       <div className="flex items-center gap-3">
         {/* Mobile menu trigger */}
         <button
@@ -80,25 +199,39 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
           <Menu className="h-6 w-6" />
         </button>
         
-        <div>
-          <h2 className="text-base font-bold text-slate-800 tracking-tight leading-none mb-1.5">
-            Balingasag Municipal Portal
-          </h2>
-          <p className="text-xs text-slate-500 font-semibold">Welcome back, {user.first_name}!</p>
-        </div>
+        {/* Dynamic Breadcrumbs */}
+        <nav aria-label="Breadcrumb" className="flex items-center">
+          <ol className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            {breadcrumbs.map((crumb, idx) => {
+              const isLast = idx === breadcrumbs.length - 1;
+              const Icon = crumb.icon;
+              return (
+                <li key={idx} className="flex items-center gap-1.5 sm:gap-2">
+                  {idx > 0 && (
+                    <ChevronRight className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                  )}
+                  {crumb.path && !isLast ? (
+                    <Link
+                      to={crumb.path}
+                      className="group flex items-center gap-1.5 text-xs sm:text-sm font-medium text-slate-500 hover:text-emerald-600 transition-colors"
+                    >
+                      {Icon && <Icon className="h-3.5 w-3.5 text-slate-400 group-hover:text-emerald-600 transition-colors" />}
+                      <span className="truncate max-w-[120px] sm:max-w-none">{crumb.label}</span>
+                    </Link>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800">
+                      {Icon && <Icon className="h-3.5 w-3.5 text-emerald-600" />}
+                      <span className="truncate max-w-[160px] sm:max-w-none">{crumb.label}</span>
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </nav>
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Real-time Clock preview */}
-        <div className="hidden md:flex flex-col text-right">
-          <span className="text-xs font-bold text-slate-700">
-            {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-          </span>
-          <span className="text-[10px] text-emerald-600 font-bold capitalize tracking-wide animate-pulse">
-            Municipal Server Active
-          </span>
-        </div>
-
         {/* Notifications Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
@@ -184,7 +317,55 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
             </div>
           )}
         </div>
+
+        {/* Modern User Account Dropdown */}
+        <UserAccountDropdown onLogoutClick={() => setIsLogoutModalOpen(true)} />
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {isLogoutModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-gradient-to-br from-slate-900/80 via-slate-800/80 to-rose-900/60 backdrop-blur-sm animate-fade-in"
+            onClick={() => setIsLogoutModalOpen(false)}
+          />
+          <div className="relative w-full max-w-sm bg-gradient-to-br from-white via-white to-rose-50/30 border border-white/20 rounded-3xl shadow-2xl p-8 text-center animate-fade-in z-10 space-y-5 overflow-hidden">
+            {/* Decorative background elements */}
+            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-rose-100/50 via-purple-50/30 to-transparent rounded-t-3xl"></div>
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-rose-200/30 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-200/30 rounded-full blur-3xl"></div>
+            
+            {/* Icon */}
+            <div className="relative z-10 p-4 bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-2xl w-16 h-16 mx-auto flex items-center justify-center shadow-lg shadow-rose-500/30">
+              <LogOut className="h-8 w-8 stroke-[2.5]" />
+            </div>
+
+            <div className="relative z-10 space-y-2">
+              <h3 className="text-xl font-bold text-slate-800 tracking-tight">
+                Confirm Logout
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                Are you sure you want to end your current session? You'll need your card credentials to sign back into Balingasag Library.
+              </p>
+            </div>
+
+            <div className="relative z-10 flex gap-3 pt-2">
+              <button
+                onClick={() => setIsLogoutModalOpen(false)}
+                className="flex-1 px-5 py-3 border-2 border-slate-200 hover:border-slate-300 text-slate-700 text-sm font-bold rounded-2xl bg-white hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="flex-1 px-5 py-3 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-sm font-bold rounded-2xl shadow-lg shadow-rose-500/30 transition-all active:scale-95"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

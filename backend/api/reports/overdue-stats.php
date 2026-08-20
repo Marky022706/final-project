@@ -28,13 +28,13 @@ try {
     // 3. Last 6 Months Fine Collections (Revenue Line Chart)
     $sqlRevenue = "
         SELECT 
-            DATE_FORMAT(paid_date, '%b %Y') AS month,
+            DATE_FORMAT(paid_at, '%b %Y') AS month,
             SUM(amount) AS revenue,
             COUNT(id) AS payments
         FROM fines
-        WHERE status = 'paid' AND paid_date >= DATE_SUB(CURRENT_DATE, INTERVAL 6 MONTH)
-        GROUP BY DATE_FORMAT(paid_date, '%Y-%m'), DATE_FORMAT(paid_date, '%b %Y')
-        ORDER BY MIN(paid_date) ASC
+        WHERE status = 'paid' AND paid_at >= DATE_SUB(CURRENT_DATE, INTERVAL 6 MONTH)
+        GROUP BY DATE_FORMAT(paid_at, '%Y-%m'), DATE_FORMAT(paid_at, '%b %Y')
+        ORDER BY MIN(paid_at) ASC
     ";
     $stmtRev = $db->query($sqlRevenue);
     $monthlyRevenue = $stmtRev->fetchAll();

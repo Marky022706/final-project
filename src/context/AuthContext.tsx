@@ -4,15 +4,17 @@ import type { ReactNode } from 'react';
 import api from '../lib/api';
 
 export interface User {
-  id: number;
+  id: number | string;
   first_name: string;
   middle_name?: string;
   last_name: string;
   email: string;
-  role: 'member' | 'admin';
+  role: 'member' | 'admin' | 'superadmin';
+  status?: 'active' | 'inactive' | 'pending' | 'suspended' | 'deactivated';
   phone?: string;
   address?: string;
   member_since?: string;
+  qr_code?: string;
   password?: string;
   stats?: {
     active_loans: number;

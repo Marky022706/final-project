@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/middleware.php';
 require_once __DIR__ . '/../../includes/response.php';
 require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../includes/activity_logger.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'DELETE') {
     Response::error('Method not allowed. Only POST/DELETE is supported.', 405);
@@ -25,8 +26,13 @@ try {
     // Start transaction
     $db->beginTransaction();
 
-    // 1. Fetch reservation
-    $stmtFetch = $db->prepare("SELECT * FROM reservations WHERE id = :id FOR UPDATE");
+    // 1. Fetch reservation and book details for logging
+    $stmtFetch = $db->prepare("
+        SELECT r.*, b.title 
+        FROM reservations r 
+        JOIN books b ON r.book_id = b.id 
+        WHERE r.id = :id FOR UPDATE
+    ");
     $stmtFetch->execute([':id' => $id]);
     $res = $stmtFetch->fetch();
 
@@ -41,7 +47,7 @@ try {
     }
 
     // 2. Safety guard: members can only cancel their own reservations
-    if ($currentUser['role'] !== 'admin' && (int)$res['user_id'] !== (int)$currentUser['id']) {
+    if (!in_array($currentUser['role'] ?? '', ['admin', 'superadmin']) && $res['user_id'] !== $currentUser['id']) {
         $db->rollBack();
         Response::forbidden('You do not have permission to cancel this reservation.');
     }
@@ -63,6 +69,19 @@ try {
 
     // Commit transaction
     $db->commit();
+
+    // Log reservation cancellation
+    $isSelfCancellation = $res['user_id'] === $currentUser['id'];
+    $description = $isSelfCancellation 
+        ? "Cancelled own reservation for \"{$res['title']}\" (Reservation ID: {$res['reservation_id']})"
+        : "Cancelled reservation for \"{$res['title']}\" by user ID: {$res['user_id']} (Reservation ID: {$res['reservation_id']})";
+    
+    logActivity(
+        $currentUser['id'],
+        'cancelled',
+        'Reservations',
+        $description
+    );
 
     Response::success(null, 'Book reservation cancelled successfully.');
 

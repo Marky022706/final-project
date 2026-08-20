@@ -10,10 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Authenticate admin
-$currentUser = Middleware::requireAuth();
-if ($currentUser['role'] !== 'admin') {
-    Response::error('Access denied. Only administrators can update reservation statuses.', 403);
-}
+$currentUser = Middleware::requireAdmin();
+
 
 $input = Utils::getJsonInput();
 $reservationId = isset($input['reservation_id']) ? (int)$input['reservation_id'] : 0;

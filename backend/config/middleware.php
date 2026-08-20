@@ -35,7 +35,9 @@ class Middleware {
      * Authenticates the request and returns the JWT User Payload
      */
     public static function requireAuth() {
-        $headers = getallheaders();
+        self::handleCORS();
+
+        $headers = function_exists('getallheaders') ? getallheaders() : [];
         $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
 
         if (empty($authHeader)) {
@@ -43,6 +45,8 @@ class Middleware {
                 $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
             } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
                 $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+            } elseif (isset($_SERVER['Authorization'])) {
+                $authHeader = $_SERVER['Authorization'];
             }
         }
 
@@ -66,15 +70,16 @@ class Middleware {
     }
 
     /**
-     * Authenticates and checks if the user is an Administrator
+     * Authenticates and checks if the user is an Administrator or Super Admin
      */
     public static function requireAdmin() {
         $user = self::requireAuth();
         
-        if (($user['role'] ?? '') !== 'admin') {
+        if (!in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
             Response::forbidden('Access forbidden. Admin role is required.');
         }
         
         return $user;
     }
+
 }

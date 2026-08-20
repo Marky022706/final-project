@@ -9,50 +9,57 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 // Extract query parameters
-$search = $_GET['search'] ?? '';
-$category = $_GET['category'] ?? '';
-$availability = $_GET['availability'] ?? 'all'; // 'all' or 'available'
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 8;
-
-if ($page < 1) $page = 1;
-if ($limit < 1) $limit = 8;
+$search = trim($_GET['search'] ?? '');
+$category = trim($_GET['category'] ?? '');
+$condition = trim($_GET['condition'] ?? '');
+$format = trim($_GET['format'] ?? '');
+$availability = trim($_GET['availability'] ?? 'all'); // 'all', 'available', 'unavailable'
+$status = trim($_GET['status'] ?? '');
+$page = max(1, (int)($_GET['page'] ?? 1));
+$limit = min(100, max(1, (int)($_GET['limit'] ?? 12)));
 $offset = ($page - 1) * $limit;
 
 try {
     $db = Database::getConnection();
     
-    // Construct Query
-    $whereClauses = [];
+    $whereClauses = ["deleted_at IS NULL"];
     $params = [];
 
     // By default, exclude archived books unless explicitly requested
     $includeArchived = isset($_GET['include_archived']) && $_GET['include_archived'] === 'true';
-    if (!$includeArchived) {
+    if ($status === 'archived') {
+        $whereClauses[] = "status = 'archived'";
+    } elseif (!$includeArchived) {
         $whereClauses[] = "status != 'archived'";
     }
     
     if (!empty($search)) {
-        $whereClauses[] = "(title LIKE :search_title OR author LIKE :search_author OR isbn LIKE :search_isbn)";
-        $searchVal = '%' . $search . '%';
-        $params[':search_title'] = $searchVal;
-        $params[':search_author'] = $searchVal;
-        $params[':search_isbn'] = $searchVal;
+        $whereClauses[] = "(title LIKE :search OR author LIKE :search OR publisher LIKE :search OR isbn LIKE :search OR accession_number LIKE :search OR shelf_location LIKE :search)";
+        $params[':search'] = "%$search%";
     }
     
-    if (!empty($category)) {
+    if (!empty($category) && $category !== 'All') {
         $whereClauses[] = "category = :category";
         $params[':category'] = $category;
+    }
+
+    if (!empty($condition) && $condition !== 'All') {
+        $whereClauses[] = "book_condition = :condition";
+        $params[':condition'] = $condition;
+    }
+
+    if (!empty($format) && $format !== 'All') {
+        $whereClauses[] = "format = :format";
+        $params[':format'] = $format;
     }
     
     if ($availability === 'available') {
         $whereClauses[] = "available_copies > 0 AND status = 'available'";
+    } elseif ($availability === 'unavailable') {
+        $whereClauses[] = "(available_copies <= 0 OR status = 'unavailable')";
     }
     
-    $whereSql = '';
-    if (!empty($whereClauses)) {
-        $whereSql = ' WHERE ' . implode(' AND ', $whereClauses);
-    }
+    $whereSql = ' WHERE ' . implode(' AND ', $whereClauses);
     
     // 1. Get Total Count
     $countSql = "SELECT COUNT(*) FROM books" . $whereSql;
@@ -62,10 +69,9 @@ try {
     $totalPages = ceil($totalBooks / $limit);
     
     // 2. Fetch Paginated Records
-    $fetchSql = "SELECT * FROM books" . $whereSql . " ORDER BY title ASC LIMIT :limit OFFSET :offset";
+    $fetchSql = "SELECT * FROM books" . $whereSql . " ORDER BY created_at DESC, title ASC LIMIT :limit OFFSET :offset";
     $stmtFetch = $db->prepare($fetchSql);
     
-    // Bind parameters
     foreach ($params as $key => $val) {
         $stmtFetch->bindValue($key, $val);
     }
@@ -73,10 +79,14 @@ try {
     $stmtFetch->bindValue(':offset', $offset, PDO::PARAM_INT);
     
     $stmtFetch->execute();
-    $books = $stmtFetch->fetchAll();
+    $books = $stmtFetch->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch categories list for filters
+    $categories = $db->query("SELECT DISTINCT category FROM books WHERE deleted_at IS NULL AND category IS NOT NULL AND category != '' ORDER BY category ASC")->fetchAll(PDO::FETCH_COLUMN);
     
     Response::success([
         'books' => $books,
+        'categories' => $categories,
         'pagination' => [
             'total' => $totalBooks,
             'page' => $page,

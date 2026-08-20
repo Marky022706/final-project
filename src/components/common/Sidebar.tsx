@@ -1,6 +1,6 @@
 // src/components/common/Sidebar.tsx
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import logoImg from '../../assets/logo.png';
 import { 
@@ -8,14 +8,22 @@ import {
   Book, 
   BookMarked, 
   History, 
-  Wallet, 
   Bell, 
-  LogOut,
-  Users,
-  FileBarChart2,
-  ListOrdered,
-  Archive,
-  CalendarClock
+  Users, 
+  FileBarChart2, 
+  ListOrdered, 
+  CalendarClock, 
+  Activity, 
+  Inbox, 
+  Settings, 
+  ShieldAlert, 
+  Trash2, 
+  Database, 
+  Globe, 
+  QrCode, 
+  ChevronDown,
+  PanelLeft,
+  X
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -23,37 +31,165 @@ interface SidebarProps {
   setIsOpen: (open: boolean) => void;
 }
 
+interface MenuSection {
+  id: string;
+  title: string;
+  items: Array<{
+    label: string;
+    path: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }>;
+}
+
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
-  const { user, logout } = useAuth();
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const { user } = useAuth();
+  const location = useLocation();
 
   if (!user) return null;
 
-  const isAdmin = user.role === 'admin';
+  const role = user.role;
+  const isSuperAdmin = role === 'superadmin';
+  const isAdmin = role === 'admin';
 
-  // Navigation schema based on user role
-  const menuItems = isAdmin
-    ? [
-        { label: 'Admin Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-        { label: 'Book Inventory', path: '/admin/books', icon: Book },
-        { label: 'Archive Books', path: '/admin/archived-books', icon: Archive },
-        { label: 'Member Directory', path: '/admin/users', icon: Users },
-        { label: 'Borrow Logs', path: '/admin/transactions', icon: ListOrdered },
-        { label: 'Reservations', path: '/admin/reservations', icon: CalendarClock },
-        { label: 'Fines Management', path: '/admin/fines', icon: Wallet },
-        { label: 'Reports & Analytics', path: '/admin/reports', icon: FileBarChart2 },
-      ]
-    : [
-        { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-        { label: 'Book Catalog', path: '/catalog', icon: Book },
-        { label: 'My Borrowed Books', path: '/my-books', icon: BookMarked },
-        { label: 'Borrowing History', path: '/history', icon: History },
-        { label: 'My Fines & Dues', path: '/fines', icon: Wallet },
-        { label: 'Notifications', path: '/notifications', icon: Bell },
-      ];
+  // Categorized Navigation sections based on role
+  let menuSections: MenuSection[] = [];
 
-  const handleLogout = () => {
-    setIsLogoutModalOpen(true);
+  if (isSuperAdmin) {
+    menuSections = [
+      {
+        id: 'overview',
+        title: 'Overview',
+        items: [
+          { label: 'Super Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+        ]
+      },
+      {
+        id: 'circulation',
+        title: 'Circulation & Books',
+        items: [
+          { label: 'Book Inventory', path: '/admin/books', icon: Book },
+          { label: 'Borrow Logs', path: '/admin/transactions', icon: ListOrdered },
+          { label: 'Reservations', path: '/admin/reservations', icon: CalendarClock },
+          { label: 'Attendance & QR', path: '/admin/attendance', icon: QrCode },
+        ]
+      },
+      {
+        id: 'users',
+        title: 'Users & Requests',
+        items: [
+          { label: 'Member Directory', path: '/admin/users', icon: Users },
+          { label: 'Request Center', path: '/admin/requests', icon: Inbox },
+        ]
+      },
+      {
+        id: 'analytics',
+        title: 'Analytics & Audit',
+        items: [
+          { label: 'Reports & Analytics', path: '/admin/reports', icon: FileBarChart2 },
+          { label: 'Audit & System Logs', path: '/admin/system-logs', icon: ShieldAlert },
+        ]
+      },
+      {
+        id: 'system',
+        title: 'System & Maintenance',
+        items: [
+          { label: 'System Settings', path: '/admin/settings', icon: Settings },
+          { label: 'Recycle Bin', path: '/admin/recycle-bin', icon: Trash2 },
+          { label: 'Backup & Restore', path: '/admin/backup-restore', icon: Database },
+        ]
+      }
+    ];
+  } else if (isAdmin) {
+    menuSections = [
+      {
+        id: 'overview',
+        title: 'Overview',
+        items: [
+          { label: 'Admin Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+        ]
+      },
+      {
+        id: 'circulation',
+        title: 'Circulation & Books',
+        items: [
+          { label: 'Book Inventory', path: '/admin/books', icon: Book },
+          { label: 'Borrow Logs', path: '/admin/transactions', icon: ListOrdered },
+          { label: 'Reservations', path: '/admin/reservations', icon: CalendarClock },
+          { label: 'Attendance & QR', path: '/admin/attendance', icon: QrCode },
+        ]
+      },
+      {
+        id: 'users',
+        title: 'Users & Requests',
+        items: [
+          { label: 'Member Directory', path: '/admin/users', icon: Users },
+          { label: 'Request Center', path: '/admin/requests', icon: Inbox },
+        ]
+      },
+      {
+        id: 'reports',
+        title: 'Reports & Logs',
+        items: [
+          { label: 'Reports & Analytics', path: '/admin/reports', icon: FileBarChart2 },
+          { label: 'Activity Log', path: '/admin/activity-log', icon: Activity },
+        ]
+      }
+    ];
+  } else {
+    // Member Navigation
+    menuSections = [
+      {
+        id: 'main',
+        title: 'Main',
+        items: [
+          { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+          { label: 'Book Catalog', path: '/catalog', icon: Book },
+        ]
+      },
+      {
+        id: 'my-library',
+        title: 'My Library',
+        items: [
+          { label: 'My Borrowed Books', path: '/my-books', icon: BookMarked },
+          { label: 'Borrowing History', path: '/history', icon: History },
+        ]
+      },
+      {
+        id: 'digital',
+        title: 'Digital & Updates',
+        items: [
+          { label: 'Digital Library', path: '/digital-library', icon: Globe },
+          { label: 'Activity History', path: '/activity-history', icon: Activity },
+          { label: 'Notifications', path: '/notifications', icon: Bell },
+        ]
+      }
+    ];
+  }
+
+  // State to track expanded section IDs (all open by default)
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    menuSections.forEach(s => {
+      initial[s.id] = true;
+    });
+    return initial;
+  });
+
+  // Auto-expand section when current route changes
+  useEffect(() => {
+    menuSections.forEach(section => {
+      const hasActiveChild = section.items.some(item => location.pathname.startsWith(item.path));
+      if (hasActiveChild) {
+        setOpenSections(prev => ({ ...prev, [section.id]: true }));
+      }
+    });
+  }, [location.pathname]);
+
+  const toggleSection = (id: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
   };
 
   return (
@@ -61,7 +197,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       {/* Mobile Drawer Backdrop overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -71,119 +207,87 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-      {/* Branding header */}
-        <div className="flex items-center gap-3.5 px-6 py-6 border-b border-primary-900/60">
-          <div className="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-full overflow-hidden">
-            <img src={logoImg} alt="Balingasag Municipal Library Logo" className="h-full w-full object-cover rounded-full" />
+        {/* Navigation Drawer Header */}
+        <div className="flex items-center justify-between px-5 py-5 border-b border-primary-900/60 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-full overflow-hidden bg-white/10 p-0.5 border border-emerald-500/20">
+              <img src={logoImg} alt="Balingasag Municipal Library Logo" className="h-full w-full object-cover rounded-full" />
+            </div>
+            <div>
+              <h1 className="text-sm font-bold tracking-tight text-white leading-tight">
+                Balingasag Library
+              </h1>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <PanelLeft className="h-3 w-3 text-emerald-400" />
+                <span className="text-[11px] text-emerald-400 font-semibold tracking-wide">
+                  Navigation Drawer
+                </span>
+              </div>
+            </div>
           </div>
-          <div>
-            <h1 className="text-base font-bold tracking-tight text-white leading-tight">
-              Balingasag Municipal
-            </h1>
-            <p className="text-xs text-emerald-400 font-medium">Public Library</p>
-          </div>
+
+          {/* Mobile close drawer trigger */}
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg lg:hidden transition-colors"
+            aria-label="Close navigation drawer"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         {/* Menu Navigation list */}
-        <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
+        <nav className="flex-1 px-4 py-4 space-y-3 overflow-y-auto scrollbar-thin">
+          {menuSections.map((section) => {
+            const isExpanded = openSections[section.id] !== false;
+
             return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={() => setIsOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-150 ${
-                    isActive
-                      ? 'bg-emerald-700/80 text-white shadow-md shadow-primary-950/20 border border-emerald-500/20'
-                      : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                  }`
-                }
-              >
-                <Icon className="h-4.5 w-4.5 flex-shrink-0" />
-                <span>{item.label}</span>
-              </NavLink>
+              <div key={section.id} className="space-y-1">
+                {/* Collapsible Category Header Button */}
+                <button
+                  type="button"
+                  onClick={() => toggleSection(section.id)}
+                  className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 transition-colors select-none rounded-lg hover:bg-white/5"
+                >
+                  <span>{section.title}</span>
+                  <ChevronDown 
+                    className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                      isExpanded ? 'rotate-0 text-emerald-400' : '-rotate-90 text-slate-500'
+                    }`} 
+                  />
+                </button>
+
+                {/* Section Links (Collapsible) */}
+                {isExpanded && (
+                  <div className="space-y-0.5 animate-fade-in pl-1">
+                    {section.items.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <NavLink
+                          key={item.path}
+                          to={item.path}
+                          onClick={() => setIsOpen(false)}
+                          className={({ isActive }) =>
+                            `flex items-center gap-3 px-3.5 py-2 text-xs font-semibold rounded-xl transition-all duration-150 ${
+                              isActive
+                                ? 'bg-emerald-700 text-white shadow-md shadow-primary-950/20 border border-emerald-500/20 font-bold'
+                                : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                            }`
+                          }
+                        >
+                          <Icon className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">{item.label}</span>
+                        </NavLink>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
-
-        {/* User Card & Logout Footer */}
-        <div className="p-4 border-t border-primary-900/60 space-y-3">
-          <NavLink 
-            to="/profile" 
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3.5 p-2 rounded-xl hover:bg-white/5 transition-colors group"
-          >
-            <div className="flex items-center justify-center h-9 w-9 rounded-full bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 font-bold group-hover:bg-emerald-600/30 transition-colors">
-              {user.first_name[0]}{user.last_name[0]}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-white truncate leading-tight">
-                {user.first_name} {user.last_name}
-              </p>
-              <p className="text-[10px] text-emerald-400 capitalize font-medium tracking-wide">
-                {user.role} Member
-              </p>
-            </div>
-          </NavLink>
-
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-4 py-3 text-xs font-semibold text-rose-300 hover:text-rose-100 bg-rose-500/10 hover:bg-rose-500/20 rounded-xl border border-rose-500/10 transition-all duration-150"
-          >
-            <LogOut className="h-4 w-4" />
-            <span>Logout Account</span>
-          </button>
-        </div>
       </aside>
-
-      {/* Premium custom Logout confirmation dialog modal */}
-      {isLogoutModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop overlay */}
-          <div 
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm animate-fade-in"
-            onClick={() => setIsLogoutModalOpen(false)}
-          />
-
-          {/* Modal Card Window */}
-          <div className="relative w-full max-w-sm bg-white/95 backdrop-blur-md border border-slate-100 rounded-2xl shadow-2xl p-6 text-center animate-fade-in z-10 space-y-4">
-            {/* Pulsing warning log-out icon */}
-            <div className="p-3.5 bg-rose-50 text-rose-500 rounded-full w-14 h-14 mx-auto flex items-center justify-center border border-rose-100/50 animate-pulse">
-              <LogOut className="h-6 w-6 stroke-[2.5]" />
-            </div>
-
-            <div className="space-y-1.5">
-              <h3 className="text-lg font-bold text-slate-800 tracking-tight Outfit">
-                Do you really want to Log out?
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                Are you sure you want to end your current session? You will need your card credentials to sign back into Balingasag Library.
-              </p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-2.5">
-              <button
-                onClick={() => setIsLogoutModalOpen(false)}
-                className="flex-1 px-4 py-2.5 border border-slate-200 hover:border-slate-300 text-slate-600 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 transition-all active:scale-95"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  setIsLogoutModalOpen(false);
-                  logout();
-                }}
-                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-100 transition-all active:scale-95"
-              >
-                Yes, Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };

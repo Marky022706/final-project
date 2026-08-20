@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/middleware.php';
 require_once __DIR__ . '/../../includes/response.php';
 require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../includes/activity_logger.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     Response::error('Method not allowed. Only POST is supported.', 405);
@@ -14,16 +15,16 @@ $currentUser = Middleware::requireAuth();
 
 $input = Utils::getJsonInput();
 
-if (!isset($input['book_id']) || (int)$input['book_id'] <= 0) {
+if (empty($input['book_id'])) {
     Response::badRequest('A valid Book ID is required to borrow.');
 }
 
-$bookId = (int)$input['book_id'];
+$bookId = trim($input['book_id']);
 
-// Determine borrowing user: Admin can borrow on behalf of another user
+// Determine borrowing user: Admin/Superadmin can borrow on behalf of another user
 $userId = $currentUser['id'];
-if ($currentUser['role'] === 'admin' && isset($input['user_id']) && (int)$input['user_id'] > 0) {
-    $userId = (int)$input['user_id'];
+if (in_array($currentUser['role'] ?? '', ['admin', 'superadmin']) && !empty($input['user_id'])) {
+    $userId = trim($input['user_id']);
 }
 
 try {
@@ -164,6 +165,29 @@ try {
     
     // Commit everything
     $db->commit();
+    
+    // Log activity
+    $isBorrowingForSelf = $userId === $currentUser['id'];
+    $description = $isBorrowingForSelf 
+        ? "Borrowed book: \"{$book['title']}\" (Transaction ID: $txnId)"
+        : "Borrowed book \"{$book['title']}\" for user ID: $userId (Transaction ID: $txnId)";
+    
+    logActivity(
+        $currentUser['id'],
+        'borrowed',
+        'Transactions',
+        $description,
+        null,
+        json_encode([
+            'transaction_id' => $txnId,
+            'book_id' => $bookId,
+            'user_id' => $userId,
+            'borrow_date' => $borrowDate,
+            'due_date' => $dueDate
+        ]),
+        $db->lastInsertId(),
+        'transaction'
+    );
     
     Response::success([
         'transaction_id' => $txnId,

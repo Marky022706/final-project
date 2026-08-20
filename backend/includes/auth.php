@@ -1,6 +1,7 @@
 <?php
 // backend/includes/auth.php
 require_once __DIR__ . '/../config/constants.php';
+require_once __DIR__ . '/response.php';
 
 class JWT {
     /**
@@ -99,5 +100,75 @@ class JWT {
      */
     public static function verifyRefresh($token) {
         return self::verifyToken($token, JWT_REFRESH_SECRET);
+    }
+
+    /**
+     * Extract bearer token from Authorization header
+     */
+    public static function getBearerToken() {
+        $headers = null;
+        if (isset($_SERVER['Authorization'])) {
+            $headers = trim($_SERVER["Authorization"]);
+        } else if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            $headers = trim($_SERVER["HTTP_AUTHORIZATION"]);
+        } elseif (function_exists('apache_request_headers')) {
+            $requestHeaders = apache_request_headers();
+            $requestHeaders = array_combine(array_map('ucwords', array_keys($requestHeaders)), array_values($requestHeaders));
+            if (isset($requestHeaders['Authorization'])) {
+                $headers = trim($requestHeaders['Authorization']);
+            }
+        }
+        
+        if (!empty($headers)) {
+            if (preg_match('/Bearer\s(\S+)/', $headers, $matches)) {
+                return $matches[1];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get Authenticated User Payload or return false
+     */
+    public static function getAuthenticatedUser() {
+        $token = self::getBearerToken();
+        if (!$token) {
+            return false;
+        }
+        return self::verifyAccess($token);
+    }
+
+    /**
+     * Require any valid authenticated user
+     */
+    public static function requireAuth() {
+        $user = self::getAuthenticatedUser();
+        if (!$user) {
+            Response::unauthorized('Authentication required. Please provide a valid Bearer token.');
+        }
+        return $user;
+    }
+
+    /**
+     * Require specific roles (e.g. ['admin', 'superadmin'])
+     */
+    public static function requireRole($allowedRoles = []) {
+        $user = self::requireAuth();
+        if (!is_array($allowedRoles)) {
+            $allowedRoles = [$allowedRoles];
+        }
+        
+        $userRole = $user['role'] ?? 'member';
+        if (!in_array($userRole, $allowedRoles)) {
+            Response::forbidden('Access forbidden. You do not have the required permissions for this action.');
+        }
+        return $user;
+    }
+
+    /**
+     * Require Super Admin role specifically
+     */
+    public static function requireSuperAdmin() {
+        return self::requireRole(['superadmin']);
     }
 }

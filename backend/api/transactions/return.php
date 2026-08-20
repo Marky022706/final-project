@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/middleware.php';
 require_once __DIR__ . '/../../includes/response.php';
 require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../includes/activity_logger.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     Response::error('Method not allowed. Only POST is supported.', 405);
@@ -48,14 +49,14 @@ try {
         Response::badRequest('This book has already been returned.');
     }
     
-    // Ensure safety: members can only trigger their own returns unless it is an Admin
-    if ($currentUser['role'] !== 'admin' && (int)$txn['user_id'] !== (int)$currentUser['id']) {
+    // Ensure safety: members can only trigger their own returns unless it is an Admin/Superadmin
+    if (!in_array($currentUser['role'] ?? '', ['admin', 'superadmin']) && $txn['user_id'] !== $currentUser['id']) {
         $db->rollBack();
         Response::forbidden('You do not have permission to return this book.');
     }
     
-    $bookId = (int)$txn['book_id'];
-    $userId = (int)$txn['user_id'];
+    $bookId = $txn['book_id'];
+    $userId = $txn['user_id'];
     
     // 2. Increment book available copies and check for reservations queue
     $stmtBook = $db->prepare("SELECT id, title, available_copies, total_copies FROM books WHERE id = :id FOR UPDATE");
@@ -162,6 +163,35 @@ try {
     
     // Commit transaction
     $db->commit();
+    
+    // Log activity
+    $isReturningForSelf = $userId === $currentUser['id'];
+    $description = $isReturningForSelf 
+        ? "Returned book: \"{$book['title']}\" (Transaction ID: {$txn['transaction_id']})"
+        : "Returned book \"{$book['title']}\" for user ID: $userId (Transaction ID: {$txn['transaction_id']})";
+    
+    if ($fineCreated) {
+        $description .= " - Late return fine of ₱" . number_format($fineAmount, 2) . " generated";
+    }
+    
+    logActivity(
+        $currentUser['id'],
+        'returned',
+        'Transactions',
+        $description,
+        null,
+        json_encode([
+            'transaction_id' => $txn['transaction_id'],
+            'book_id' => $bookId,
+            'user_id' => $userId,
+            'return_date' => $returnDate,
+            'overdue_days' => $overdueDays,
+            'fine_amount' => $fineAmount,
+            'fine_id' => $fineId
+        ]),
+        $txn['id'],
+        'transaction'
+    );
     
     Response::success([
         'overdue_days' => $overdueDays,

@@ -1,34 +1,35 @@
 <?php
 // backend/api/books/archive.php
 require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../config/middleware.php';
 require_once __DIR__ . '/../../includes/response.php';
 require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/activity_logger.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     Response::error('Method not allowed. Only POST is supported.', 405);
 }
 
-// Admin Route Guard
-Middleware::requireAdmin();
+// Admin / Super Admin
+$currentUser = JWT::requireRole(['admin', 'superadmin']);
+$isSuperAdmin = ($currentUser['role'] ?? '') === 'superadmin';
 
 $input = Utils::getJsonInput();
-$id = isset($input['id']) ? (int)$input['id'] : 0;
+$id = $input['id'] ?? null;
+$reason = trim($input['reason'] ?? '');
 
-if ($id <= 0) {
+if (!$id) {
     Response::badRequest('A valid Book ID is required to process archival.');
 }
 
 try {
     $db = Database::getConnection();
-    
-    // Start transaction
     $db->beginTransaction();
 
     // 1. Fetch book details
     $stmtBook = $db->prepare("SELECT * FROM books WHERE id = :id FOR UPDATE");
     $stmtBook->execute([':id' => $id]);
-    $book = $stmtBook->fetch();
+    $book = $stmtBook->fetch(PDO::FETCH_ASSOC);
 
     if (!$book) {
         $db->rollBack();
@@ -36,37 +37,77 @@ try {
     }
 
     $currentStatus = $book['status'];
-    $newStatus = '';
-    $message = '';
 
     if ($currentStatus === 'archived') {
-        // Unarchive/Restore book copy
+        // Restore book - SUPER ADMIN ONLY
+        if (!$isSuperAdmin) {
+            $db->rollBack();
+            Response::forbidden('Only the Super Admin has authority to directly restore archived books.');
+        }
+
         $newStatus = (int)$book['available_copies'] > 0 ? 'available' : 'unavailable';
-        $message = 'Book catalog record successfully restored and unarchived!';
+        $stmtUpdate = $db->prepare("UPDATE books SET status = :status WHERE id = :id");
+        $stmtUpdate->execute([':status' => $newStatus, ':id' => $id]);
+        $db->commit();
+
+        logActivity(
+            $currentUser['id'],
+            'restore_book',
+            'Books',
+            "Super Admin restored archived book: '{$book['title']}'"
+        );
+
+        Response::success(['status' => $newStatus], 'Book record successfully restored to active catalog!');
     } else {
-        // Archive book copy
-        // 2. Prevent archiving if there are active loans
+        // Archiving book
         $borrowedCopies = (int)$book['total_copies'] - (int)$book['available_copies'];
         if ($borrowedCopies > 0) {
             $db->rollBack();
-            Response::badRequest("Cannot archive this book. Currently, $borrowedCopies copies are on loan to library members.");
+            Response::badRequest("Cannot archive this book. Currently, $borrowedCopies copies are on loan.");
         }
-        
-        $newStatus = 'archived';
-        $message = 'Book catalog record successfully archived!';
+
+        if (!$isSuperAdmin) {
+            // Admin creates an archive request for Super Admin approval
+            $requestId = 'REQ-ARC-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -5));
+            $stmtReq = $db->prepare("
+                INSERT INTO requests (request_id, type, user_id, book_id, title, author, reason, status)
+                VALUES (:req_id, 'archive', :uid, :bid, :title, :author, :reason, 'pending')
+            ");
+            $stmtReq->execute([
+                ':req_id' => $requestId,
+                ':uid' => $currentUser['id'],
+                ':bid' => $id,
+                ':title' => $book['title'],
+                ':author' => $book['author'],
+                ':reason' => $reason ?: 'Archival requested by librarian'
+            ]);
+            $db->commit();
+
+            logActivity(
+                $currentUser['id'],
+                'archive_request',
+                'Requests',
+                "Librarian submitted archive request ($requestId) for book '{$book['title']}'"
+            );
+
+            Response::success(['request_id' => $requestId], 'Archive request submitted successfully for Super Admin approval.');
+        } else {
+            // Super Admin directly archives
+            $newStatus = 'archived';
+            $stmtUpdate = $db->prepare("UPDATE books SET status = :status WHERE id = :id");
+            $stmtUpdate->execute([':status' => $newStatus, ':id' => $id]);
+            $db->commit();
+
+            logActivity(
+                $currentUser['id'],
+                'archive_book',
+                'Books',
+                "Super Admin archived book: '{$book['title']}'"
+            );
+
+            Response::success(['status' => $newStatus], 'Book record successfully archived!');
+        }
     }
-
-    // 3. Update status in database
-    $stmtUpdate = $db->prepare("UPDATE books SET status = :status WHERE id = :id");
-    $stmtUpdate->execute([
-        ':status' => $newStatus,
-        ':id' => $id
-    ]);
-
-    // Commit transaction
-    $db->commit();
-
-    Response::success(['status' => $newStatus], $message);
 
 } catch (Exception $e) {
     if (isset($db) && $db->inTransaction()) {

@@ -1,11 +1,14 @@
 // src/App.tsx
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { useAuth } from './hooks/useAuth';
 import DashboardLayout from './components/layout/DashboardLayout';
 import AdminRoute from './components/layout/AdminRoute';
+import { AIChatbot } from './components/member/AIChatbot';
+import { MessageCircle } from 'lucide-react';
 
 // Page Imports
 import LandingPage from './pages/public/LandingPage';
@@ -20,6 +23,9 @@ import History from './pages/member/History';
 import Fines from './pages/member/Fines';
 import Notifications from './pages/member/Notifications';
 import Profile from './pages/member/Profile';
+import AccountSettings from './pages/member/AccountSettings';
+import MemberActivityHistory from './pages/member/MemberActivityHistory';
+import DigitalLibrary from './pages/member/DigitalLibrary';
 
 // Admin Pages Imports
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -30,13 +36,48 @@ import AdminTransactions from './pages/admin/AdminTransactions';
 import AdminReservations from './pages/admin/AdminReservations';
 import AdminFines from './pages/admin/AdminFines';
 import AdminReports from './pages/admin/AdminReports';
+import AdminActivityLog from './pages/admin/AdminActivityLog';
+import QRAttendanceScan from './pages/admin/QRAttendanceScan';
+import AdminAttendance from './pages/admin/AdminAttendance';
+import RequestManagement from './pages/admin/RequestManagement';
+import AdminSettings from './pages/admin/AdminSettings';
+import AdminRecycleBin from './pages/admin/AdminRecycleBin';
+import AdminBackupRestore from './pages/admin/AdminBackupRestore';
+import AdminSystemLogs from './pages/admin/AdminSystemLogs';
+import NotFound from './pages/NotFound';
+
+// Global AI Chatbot Component
+const GlobalAIChatbot: React.FC = () => {
+  const { user } = useAuth();
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+
+  // Only show for authenticated members (not admins)
+  if (!user || user.role !== 'member') return null;
+
+  return (
+    <>
+      {/* Floating Button */}
+      <button
+        onClick={() => setIsChatbotOpen(true)}
+        className="fixed bottom-6 right-6 z-40 p-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-full shadow-lg shadow-emerald-200 dark:shadow-emerald-900/30 transition-all hover:scale-105"
+        aria-label="Open AI Assistant"
+      >
+        <MessageCircle className="h-6 w-6" />
+      </button>
+      
+      {/* Chatbot Component */}
+      <AIChatbot isOpen={isChatbotOpen} onClose={() => setIsChatbotOpen(false)} />
+    </>
+  );
+};
 
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <ToastProvider>
-        <AuthProvider>
-          <Routes>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <Routes>
           {/* Public Front-Facing Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
@@ -50,12 +91,15 @@ export const App: React.FC = () => {
             <Route path="/catalog" element={<BookCatalog />} />
             <Route path="/my-books" element={<MyBooks />} />
             <Route path="/history" element={<History />} />
+            <Route path="/digital-library" element={<DigitalLibrary />} />
+            <Route path="/activity-history" element={<MemberActivityHistory />} />
             <Route path="/fines" element={<Fines />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/account-settings" element={<AccountSettings />} />
           </Route>
 
-          {/* Librarian Administrative Restricted Routes */}
+          {/* Librarian & Super Admin Administrative Restricted Routes */}
           <Route element={<DashboardLayout />}>
             <Route
               path="/admin/dashboard"
@@ -86,6 +130,14 @@ export const App: React.FC = () => {
               element={
                 <AdminRoute>
                   <AdminUsers />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/requests"
+              element={
+                <AdminRoute>
+                  <RequestManagement />
                 </AdminRoute>
               }
             />
@@ -121,14 +173,74 @@ export const App: React.FC = () => {
                 </AdminRoute>
               }
             />
+            <Route
+              path="/admin/activity-log"
+              element={
+                <AdminRoute>
+                  <AdminActivityLog />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/attendance"
+              element={
+                <AdminRoute>
+                  <AdminAttendance />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <AdminRoute superAdminOnly={true}>
+                  <AdminSettings />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/recycle-bin"
+              element={
+                <AdminRoute>
+                  <AdminRecycleBin />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/backup-restore"
+              element={
+                <AdminRoute superAdminOnly={true}>
+                  <AdminBackupRestore />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/system-logs"
+              element={
+                <AdminRoute superAdminOnly={true}>
+                  <AdminSystemLogs />
+                </AdminRoute>
+              }
+            />
           </Route>
 
-          {/* Page not found redirect fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* QR Scanner - Fullscreen */}
+          <Route
+            path="/admin/qr-scan"
+            element={
+              <AdminRoute>
+                <QRAttendanceScan />
+              </AdminRoute>
+            }
+          />
+
+          {/* Page not found */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
+        <GlobalAIChatbot />
         <LogoutLoader />
       </AuthProvider>
      </ToastProvider>
+    </ThemeProvider>
     </BrowserRouter>
   );
 };

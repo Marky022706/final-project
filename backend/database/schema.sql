@@ -100,6 +100,20 @@ CREATE TABLE fines (
     FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Reservations Table
+CREATE TABLE reservations (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    reservation_id VARCHAR(20) UNIQUE NOT NULL,
+    user_id INT NOT NULL,
+    book_id INT NOT NULL,
+    reservation_date DATE NOT NULL,
+    status ENUM('pending', 'ready', 'completed', 'cancelled') DEFAULT 'pending',
+    notified BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Notifications Table
 CREATE TABLE notifications (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -108,6 +122,19 @@ CREATE TABLE notifications (
     message TEXT NOT NULL,
     type ENUM('due_reminder', 'overdue', 'reservation_ready', 'announcement') NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Activity Logs Table (Audit Trail)
+CREATE TABLE activity_logs (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    action VARCHAR(100) NOT NULL,
+    module VARCHAR(50) NOT NULL,
+    description TEXT NOT NULL,
+    ip_address VARCHAR(45) NULL,
+    user_agent TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -121,4 +148,10 @@ CREATE INDEX idx_books_category ON books(category);
 CREATE INDEX idx_transactions_status ON transactions(status);
 CREATE INDEX idx_transactions_due_date ON transactions(due_date);
 CREATE INDEX idx_fines_status ON fines(status);
+CREATE INDEX idx_reservations_status ON reservations(status);
+CREATE INDEX idx_reservations_book ON reservations(book_id);
+CREATE INDEX idx_reservations_user ON reservations(user_id);
 CREATE INDEX idx_notifications_user_unread ON notifications(user_id, is_read);
+CREATE INDEX idx_activity_logs_user ON activity_logs(user_id);
+CREATE INDEX idx_activity_logs_module ON activity_logs(module);
+CREATE INDEX idx_activity_logs_created ON activity_logs(created_at);

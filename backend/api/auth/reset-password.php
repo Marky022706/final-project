@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../includes/response.php';
 require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../includes/activity_logger.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     Response::error('Method not allowed. Only POST is supported.', 405);
@@ -63,6 +64,14 @@ try {
     $stmtRevokeTokens->execute([':user_id' => $reset['user_id']]);
 
     $db->commit();
+
+    // Log password reset
+    logActivity(
+        $reset['user_id'],
+        'password_reset',
+        'Authentication',
+        "Password reset successfully via phone verification"
+    );
 
     Response::success(null, 'Password reset successfully. You can now sign in.');
 

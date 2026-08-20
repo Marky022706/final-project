@@ -4,13 +4,14 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/middleware.php';
 require_once __DIR__ . '/../../includes/response.php';
 require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../includes/activity_logger.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     Response::error('Method not allowed. Only POST is supported.', 405);
 }
 
 // Admin Route Guard
-Middleware::requireAdmin();
+$currentUser = Middleware::requireAdmin();
 
 $input = Utils::getJsonInput();
 
@@ -82,6 +83,17 @@ try {
     
     // Commit transaction
     $db->commit();
+    
+    // Log fine payment/waiver
+    $actionText = $newStatus === 'paid' ? 'paid' : 'waived';
+    $description = "Fine {$actionText}: ₱" . number_format($fine['amount'], 2) . " (Fine ID: {$fine['fine_id']}) for user ID: {$fine['user_id']}";
+    
+    logActivity(
+        $currentUser['id'],
+        $newStatus === 'paid' ? 'paid' : 'waived',
+        'Fines',
+        $description
+    );
     
     Response::success(null, $newStatus === 'paid' 
         ? 'Fine successfully recorded as Paid!' 

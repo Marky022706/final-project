@@ -13,13 +13,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $currentUser = Middleware::requireAuth();
 
 $status = $_GET['status'] ?? '';
-$filterUserId = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
+$filterUserId = $_GET['user_id'] ?? null;
+
+$isStaff = in_array($currentUser['role'] ?? '', ['admin', 'superadmin']);
 
 // Access control check
-$targetUserId = $currentUser['id'];
-if ($currentUser['role'] === 'admin') {
-    // Admins can see global listings or filter by specific member
-    $targetUserId = $filterUserId > 0 ? $filterUserId : null;
+if ($isStaff) {
+    // Staff can see global listings or filter by specific member
+    $targetUserId = !empty($filterUserId) ? $filterUserId : null;
 } else {
     // Members can ONLY query their own history
     $targetUserId = $currentUser['id'];
@@ -32,7 +33,7 @@ try {
     $whereClauses = [];
     $params = [];
     
-    if ($targetUserId !== null) {
+    if (!empty($targetUserId)) {
         $whereClauses[] = "t.user_id = :user_id";
         $params[':user_id'] = $targetUserId;
     }
@@ -57,7 +58,8 @@ try {
             t.borrow_date, 
             t.due_date, 
             t.return_date, 
-            t.renewals, 
+            t.renewal_count AS renewals,
+            t.renewal_count, 
             t.status,
             u.first_name, 
             u.last_name, 
@@ -78,35 +80,24 @@ try {
     
     $stmt = $db->prepare($sql);
     $stmt->execute($params);
-    $transactions = $stmt->fetchAll();
+    $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Dynamic overlay: double check if some active transactions are overdue in real-time,
-    // and update their status in the DB if necessary. This keeps the database statuses
-    // 100% fresh in a self-healing way whenever lists are loaded! This is incredibly robust!
+    // Dynamic overlay: double check if some active transactions are overdue in real-time
     $freshTransactions = [];
-    $updatedCount = 0;
     
     foreach ($transactions as $txn) {
         $isOverdueNow = ($txn['status'] === 'active' && strtotime($txn['due_date']) < time());
         
         if ($isOverdueNow) {
-            // Self-healing update status to overdue in background
             $stmtUpdateStatus = $db->prepare("UPDATE transactions SET status = 'overdue' WHERE id = :id");
             $stmtUpdateStatus->execute([':id' => $txn['id']]);
             $txn['status'] = 'overdue';
-            $updatedCount++;
-        }
-        
-        // Calculate potential real-time fine amount if overdue
-        if ($txn['status'] === 'overdue' && empty($txn['fine_amount'])) {
-            $overdueDays = Utils::calculateOverdueDays($txn['due_date']);
-            $txn['realtime_fine_estimate'] = Utils::calculateFineAmount($overdueDays);
         }
         
         $freshTransactions[] = $txn;
     }
-
-    Response::success($freshTransactions, 'Transactions listed successfully. Self-healed: ' . $updatedCount);
+    
+    Response::success($freshTransactions, 'Transactions fetched successfully.');
 
 } catch (PDOException $e) {
     Response::error('Server database error: ' . $e->getMessage());

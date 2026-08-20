@@ -134,54 +134,31 @@ export const AdminArchivedBooks: React.FC = () => {
     {
       header: 'Actions',
       accessor: (row: any) => {
-        const isOpen = activeDropdownId === row.id;
         return (
-          <div className="relative inline-block text-left actions-dropdown-container">
+          <div className="flex items-center gap-1.5 whitespace-nowrap">
+            {/* Unarchive Book — primary action */}
             <Button
               variant="outline"
               size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveDropdownId(isOpen ? null : row.id);
-              }}
-              className="px-3.5 h-10 text-xs border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-amber-700 rounded-xl flex items-center gap-1.5 font-bold shadow-sm animate-fade-in"
+              onClick={() => setUnarchiveConfirmBook(row)}
+              className="text-xs py-1.5 px-2.5 border-teal-200 hover:bg-teal-50 text-teal-700 font-bold inline-flex items-center gap-1.5 rounded-xl shadow-xs"
+              title="Unarchive Book"
             >
-              <span>Actions</span>
-              <span className="text-[9px] transition-transform duration-200" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>Unarchive</span>
             </Button>
 
-            {isOpen && (
-              <div
-                className="absolute right-0 mt-1.5 w-40 rounded-xl bg-white border border-slate-100 shadow-xl py-1.5 z-[100] animate-fade-in text-left pointer-events-auto"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Unarchive Book — primary action */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveDropdownId(null);
-                    setUnarchiveConfirmBook(row);
-                  }}
-                  className="w-full px-3.5 py-2.5 text-xs font-bold text-teal-600 hover:bg-teal-50 transition-colors flex items-center gap-2"
-                >
-                  <RotateCcw className="h-4 w-4" strokeWidth={2.5} />
-                  <span>Unarchive Book</span>
-                </button>
-
-                {/* Delete permanently */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveDropdownId(null);
-                    setDeleteConfirmBook(row);
-                  }}
-                  className="w-full px-3.5 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-50/50 transition-colors flex items-center gap-2 border-t border-slate-50"
-                >
-                  <Trash2 className="h-4 w-4" strokeWidth={2.5} />
-                  <span>Delete Books</span>
-                </button>
-              </div>
-            )}
+            {/* Delete permanently */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDeleteConfirmBook(row)}
+              className="text-xs py-1.5 px-2.5 border-rose-200 hover:bg-rose-50 text-rose-600 font-bold inline-flex items-center gap-1.5 rounded-xl shadow-xs"
+              title="Delete Book"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>Delete</span>
+            </Button>
           </div>
         );
       }

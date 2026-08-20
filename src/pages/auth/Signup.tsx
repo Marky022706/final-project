@@ -1,8 +1,9 @@
 // src/pages/auth/Signup.tsx
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { ArrowLeft, AlertCircle, User, Lock, Shield, ChevronLeft, ChevronRight, Check, Eye, EyeOff, X } from 'lucide-react';
+import { ArrowLeft, AlertCircle, User, Lock, Shield, ChevronLeft, ChevronRight, Check, Eye, EyeOff, X, ShieldCheck, FileText, CheckCircle2, Scale } from 'lucide-react';
 import api from '../../lib/api';
 import Button from '../../components/common/Button';
 import logoImg from '../../assets/logo.png';
@@ -629,61 +630,205 @@ export const Signup: React.FC = () => {
               </Link>
             </p>
           </div>
+        </div>
+      </div>
 
-          {/* Privacy Policy & Terms of Agreement Popup Overlay (Exactly same size as card, completely non-transparent bg-white) */}
-          {showPopup && (
-            <div className="absolute inset-0 bg-white z-50 rounded-2xl p-8 flex flex-col animate-fade-in">
-              {/* Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
-                    <Shield className="h-4.5 w-4.5" />
+      {/* Redesigned Privacy Policy & Terms of Agreement Modal Dialog */}
+      {showPopup && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          {/* Backdrop Click Outside */}
+          <div className="fixed inset-0" onClick={() => setShowPopup(false)} />
+
+          {/* Modal Container */}
+          <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden z-10 animate-scale-up">
+            
+            {/* Modal Header */}
+            <div className="px-6 pt-6 pb-4 border-b border-slate-100 bg-slate-50/50">
+              <div className="flex items-center justify-between gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-2xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center border border-emerald-200/60 shadow-sm">
+                    {popupType === 'privacy' ? <ShieldCheck className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
                   </div>
                   <div>
-                    <h3 className="text-sm font-extrabold text-slate-800 tracking-tight">
+                    <h3 className="text-base font-extrabold text-slate-800 tracking-tight">
                       {popupType === 'privacy' ? 'Privacy Policy' : 'Terms of Agreement'}
                     </h3>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-                      Balingasag Municipal Library
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                      Balingasag Municipal Public Library • Portal Terms
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowPopup(false)}
-                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all border border-transparent hover:border-slate-200/60"
-                  aria-label="Close details"
+                  className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-xl transition-all"
+                  aria-label="Close modal"
                 >
-                  <X className="h-4.5 w-4.5" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
 
-              {/* Scrollable text contents */}
-              <div className="flex-1 overflow-y-auto py-5 pr-1 space-y-4 text-xs text-slate-600 leading-relaxed font-medium scrollbar-thin">
-                {popupType === 'privacy' ? (
-                  <>
-                    <p className="font-semibold text-slate-800 text-[13px]">Privacy Policy & Data Server Integrity</p>
-                    <p>Your privacy is important to us. Your profile info (First Name, Last Name, Phone, Address, Email) is strictly safely stored on the Balingasag library server database. We never sell, share or distribute your contact details to third-party databases. The collected data is solely used for library database card validation and physical identity authentication.</p>
-                  </>
-                ) : (
-                  <>
-                    <p className="font-semibold text-slate-800 text-[13px]">1. Terms of Book Borrowing</p>
-                    <p>By obtaining a Balingasag Municipal Library Card, you agree to take full responsibility for all materials borrowed. You promise to return borrowed books on or before their due dates in the same condition as when they were received.</p>
-
-                    <p className="font-semibold text-slate-800 text-[13px]">2. Fines and Penalties</p>
-                    <p>Late returns are subject to late fee fines set by municipal ordinances. Unresolved overdue items or unpaid fines may lead to temporary suspension or permanent cancellation of library card privileges.</p>
-
-                    <p className="font-semibold text-slate-800 text-[13px]">3. User Accounts</p>
-                    <p>Users agree to safeguard their passwords and avoid sharing them with others. You are responsible for any borrowing history associated with your library card credentials.</p>
-                  </>
-                )}
+              {/* Segmented Document Navigation Switcher Tabs */}
+              <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-200/60 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setPopupType('privacy')}
+                  className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all duration-200 ${
+                    popupType === 'privacy'
+                      ? 'bg-white text-emerald-800 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>Privacy Policy</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPopupType('terms')}
+                  className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all duration-200 ${
+                    popupType === 'terms'
+                      ? 'bg-white text-emerald-800 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  <span>Terms of Agreement</span>
+                </button>
               </div>
+            </div>
 
-              {/* Action Button */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3 bg-white">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-                  Read thoroughly before signing
-                </span>
+            {/* Modal Body - Scrollable Content with Rich Structured Styling */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 text-slate-600 text-xs sm:text-sm leading-relaxed scrollbar-thin">
+              {popupType === 'privacy' ? (
+                <div className="space-y-5">
+                  <div className="p-4 bg-emerald-50/70 border border-emerald-100 rounded-2xl flex items-start gap-3">
+                    <Shield className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-bold text-emerald-900 text-xs sm:text-sm mb-1">
+                        Commitment to Borrower Privacy
+                      </h4>
+                      <p className="text-xs text-emerald-800/90 leading-relaxed">
+                        Your privacy is fundamental to our municipal service. We adhere strictly to data privacy standards to safeguard all personal and borrowing records.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <h5 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" />
+                        1. Information We Collect
+                      </h5>
+                      <p className="text-xs text-slate-600 pl-4 leading-relaxed">
+                        When you register for a library card, we collect your full name, contact number, residential address, and email for the sole purpose of account identification, borrowing validation, and notification delivery.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h5 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" />
+                        2. Data Storage and Server Security
+                      </h5>
+                      <p className="text-xs text-slate-600 pl-4 leading-relaxed">
+                        All user profiles and activity logs are stored on secure municipal database servers. We never sell, lease, or distribute your private contact details to commercial third parties.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h5 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" />
+                        3. Borrowing Records & Confidentiality
+                      </h5>
+                      <p className="text-xs text-slate-600 pl-4 leading-relaxed">
+                        Your borrowing history, reading lists, and reservation queries are kept confidential and accessible only to authorized municipal library personnel for inventory management.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h5 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" />
+                        4. Account Security & Session Tokens
+                      </h5>
+                      <p className="text-xs text-slate-600 pl-4 leading-relaxed">
+                        Authentication tokens are encrypted and managed using secure rotation algorithms. You are advised to log out after using public devices.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <div className="p-4 bg-emerald-50/70 border border-emerald-100 rounded-2xl flex items-start gap-3">
+                    <Scale className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-bold text-emerald-900 text-xs sm:text-sm mb-1">
+                        Balingasag Municipal Library Code of Conduct
+                      </h4>
+                      <p className="text-xs text-emerald-800/90 leading-relaxed">
+                        By using the digital portal and accessing municipal facilities, you agree to comply with library policies and ordinances.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <h5 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" />
+                        1. Care of Library Materials
+                      </h5>
+                      <p className="text-xs text-slate-600 pl-4 leading-relaxed">
+                        Borrowers assume full responsibility for all materials checked out under their library card. Books must be returned on or before the due date in their original condition.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h5 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" />
+                        2. Loan Periods and Limits
+                      </h5>
+                      <p className="text-xs text-slate-600 pl-4 leading-relaxed">
+                        Standard borrowing allows up to 3 books simultaneously for a period of 14 days, subject to renewal if no reservations are pending.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h5 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" />
+                        3. Fines, Overdue Penalties & Replacement
+                      </h5>
+                      <p className="text-xs text-slate-600 pl-4 leading-relaxed">
+                        Late returns incur daily fines according to municipal ordinances. Damaged or lost items must be replaced or paid for at full replacement value.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h5 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" />
+                        4. Account Credentials & Security
+                      </h5>
+                      <p className="text-xs text-slate-600 pl-4 leading-relaxed">
+                        Do not share your password or physical library card QR code with others. You remain responsible for any activity executed under your credentials.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-slate-500 text-xs font-medium">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                <span>Agreement required to complete registration</span>
+              </div>
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowPopup(false)}
+                  className="w-full sm:w-auto py-2.5 px-4 text-xs font-bold"
+                >
+                  Close
+                </Button>
                 <Button
                   type="button"
                   onClick={() => {
@@ -691,15 +836,19 @@ export const Signup: React.FC = () => {
                     setShowPopup(false);
                   }}
                   variant="primary"
-                  className="py-2.5 px-5 text-xs font-bold"
+                  className="w-full sm:w-auto py-2.5 px-5 text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950/20"
                 >
-                  I Understand & Agree
+                  <Check className="h-4 w-4" />
+                  <span>I Understand & Agree</span>
                 </Button>
               </div>
             </div>
-          )}
-        </div>
-      </div>
+
+          </div>
+        </div>,
+        document.body
+      )}
+
       {/* Premium custom Signup loading screen overlay */}
       {(isSubmitting || authLoading) && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm fade-in">

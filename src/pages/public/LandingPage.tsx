@@ -2,12 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { Book, Search, Clock, ShieldCheck, HelpCircle, MessageSquare, Mail, Phone, ChevronLeft, ChevronRight, Filter, Menu, X, MapPin, Check } from 'lucide-react';
+import { Clock, MessageSquare, Mail, Phone, ChevronLeft, ChevronRight, Menu, X, MapPin, Check, Landmark, ArrowRight, BookOpen, Search, Wifi, Sparkles } from 'lucide-react';
 import api from '../../lib/api';
-import BookCard from '../../components/common/BookCard';
-import type { BookItem } from '../../components/common/BookCard';
-import Modal from '../../components/common/Modal';
-import Button from '../../components/common/Button';
 import logoImg from '../../assets/logo.png';
 import heroBgImg from '../../assets/hero-bg.jpg';
 import about1 from '../../assets/about-1.jpg';
@@ -63,8 +59,6 @@ const useAnimatedCounter = (target: number, duration = 2000) => {
 };
 
 export const LandingPage: React.FC = () => {
-  const [featuredBooks, setFeaturedBooks] = useState<BookItem[]>([]);
-  const [selectedBook, setSelectedBook] = useState<BookItem | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
@@ -72,7 +66,7 @@ export const LandingPage: React.FC = () => {
 
   // Dynamic section highlight observer
   useEffect(() => {
-    const sectionIds = ['hero', 'catalog-preview', 'how-to-access', 'about-us', 'contact-us'];
+    const sectionIds = ['hero', 'services', 'how-to-access', 'about-us', 'contact-us'];
     
     const observerOptions = {
       root: null,
@@ -147,48 +141,6 @@ export const LandingPage: React.FC = () => {
   const { count: membersCount, elementRef: membersRef } = useAnimatedCounter(activeMembers);
   const { count: yearsCounterVal, elementRef: yearsRef } = useAnimatedCounter(yearsOfService);
 
-  // Full Catalog States
-  const [catalogLoading, setCatalogLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
-
-
-  const categoriesList = [
-    'Fiction',
-    'Science',
-    'History',
-    'Biography',
-    'Philosophy',
-    'Technology',
-    'Children',
-  ];
-
-  const fetchCatalog = async () => {
-    setCatalogLoading(true);
-    try {
-      const response = await api.get('/books/getAll', {
-        params: {
-          search: search || undefined,
-          category: category || undefined,
-          page,
-          limit: 8,
-        },
-      });
-
-      if (response.data && response.data.success) {
-        setFeaturedBooks(response.data.data.books);
-        setTotalPages(response.data.data.pagination.total_pages);
-      }
-    } catch (err) {
-      console.error('Failed to load catalog:', err);
-    } finally {
-      setCatalogLoading(false);
-    }
-  };
-
   // Fetch public stats on mount
   useEffect(() => {
     const fetchStats = async () => {
@@ -212,20 +164,6 @@ export const LandingPage: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchCatalog();
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [page, category]);
-
-  const handleFilterChange = (catVal: string) => {
-    setCategory(catVal);
-    if (page !== 1) {
-      setPage(1);
-    }
-  };
-
   // Prevent body scrolling when mobile menu is open
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -238,103 +176,91 @@ export const LandingPage: React.FC = () => {
     };
   }, [mobileMenuOpen]);
 
-  // Live search: debounced catalog fetch on every keystroke (instant filtering like DataTable)
-  useEffect(() => {
-    const delayDebounce = setTimeout(() => {
-      if (page === 1) {
-        fetchCatalog();
-      } else {
-        setPage(1);
-      }
-    }, 350);
-
-    return () => clearTimeout(delayDebounce);
-  }, [search]);
-
   return (
     <div id="home" className="min-h-screen bg-slate-50 gradient-bg flex flex-col scroll-smooth overflow-x-clip">
       {/* Header navbar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm px-4 sm:px-6 py-5 sm:py-4.5">
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-100 shadow-sm px-4 sm:px-8 py-3.5 sm:py-4">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+          {/* Logo & Seal */}
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 flex items-center justify-center rounded-full overflow-hidden border border-slate-100 shadow-sm bg-white">
-              <img src={logoImg} alt="Balingasag Municipal Library Logo" className="h-full w-full object-cover rounded-full" />
+            <div className="h-11 w-11 sm:h-12 sm:w-12 flex-shrink-0 flex items-center justify-center rounded-full overflow-hidden bg-white">
+              <img src={logoImg} alt="Balingasag Municipal Library Logo" className="h-full w-full object-contain" />
             </div>
-            <div>
-              <h1 className="text-sm sm:text-base md:text-lg font-black tracking-tight text-slate-800 m-0 leading-tight">
-                Balingasag Municipal
-              </h1>
-              <p className="text-[10px] sm:text-xs text-emerald-600 font-extrabold uppercase tracking-wider leading-none mt-0.5">
-                Public Library
-              </p>
+            <div className="flex flex-col text-left">
+              <span className="text-[11px] sm:text-xs font-black tracking-wider text-[#15803d] uppercase leading-none">
+                BALINGASAG MUNICIPAL
+              </span>
+              <span className="text-sm sm:text-base font-black tracking-tight text-[#064e3b] uppercase leading-tight mt-0.5">
+                PUBLIC LIBRARY
+              </span>
             </div>
           </div>
 
           {/* Center navigation links for Desktop */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden lg:flex items-center gap-8">
             <a
               href="#home"
-              className={`text-xs font-extrabold transition-all duration-200 uppercase tracking-wider relative py-1.5 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-emerald-600 after:transform after:origin-left after:transition-transform after:duration-200 hover:after:scale-x-100 ${
+              className={`text-xs font-black tracking-wider uppercase transition-colors relative py-1 ${
                 activeSection === 'home'
-                  ? 'text-emerald-600 after:scale-x-100'
-                  : 'text-slate-500 hover:text-emerald-600 after:scale-x-0'
+                  ? 'text-[#16a34a] border-b-2 border-[#16a34a]'
+                  : 'text-slate-700 hover:text-[#16a34a]'
               }`}
             >
-              Home
+              HOME
             </a>
             <a
-              href="#catalog-preview"
-              className={`text-xs font-extrabold transition-all duration-200 uppercase tracking-wider relative py-1.5 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-emerald-600 after:transform after:origin-left after:transition-transform after:duration-200 hover:after:scale-x-100 ${
-                activeSection === 'catalog-preview'
-                  ? 'text-emerald-600 after:scale-x-100'
-                  : 'text-slate-500 hover:text-emerald-600 after:scale-x-0'
+              href="#services"
+              className={`text-xs font-black tracking-wider uppercase transition-colors relative py-1 ${
+                activeSection === 'services'
+                  ? 'text-[#16a34a] border-b-2 border-[#16a34a]'
+                  : 'text-slate-700 hover:text-[#16a34a]'
               }`}
             >
-              Catalog
+              SERVICES
             </a>
             <a
               href="#how-to-access"
-              className={`text-xs font-extrabold transition-all duration-200 uppercase tracking-wider relative py-1.5 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-emerald-600 after:transform after:origin-left after:transition-transform after:duration-200 hover:after:scale-x-100 ${
+              className={`text-xs font-black tracking-wider uppercase transition-colors relative py-1 ${
                 activeSection === 'how-to-access'
-                  ? 'text-emerald-600 after:scale-x-100'
-                  : 'text-slate-500 hover:text-emerald-600 after:scale-x-0'
+                  ? 'text-[#16a34a] border-b-2 border-[#16a34a]'
+                  : 'text-slate-700 hover:text-[#16a34a]'
               }`}
             >
-              How to Access
+              HOW TO ACCESS
             </a>
             <a
               href="#about-us"
-              className={`text-xs font-extrabold transition-all duration-200 uppercase tracking-wider relative py-1.5 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-emerald-600 after:transform after:origin-left after:transition-transform after:duration-200 hover:after:scale-x-100 ${
+              className={`text-xs font-black tracking-wider uppercase transition-colors relative py-1 ${
                 activeSection === 'about-us'
-                  ? 'text-emerald-600 after:scale-x-100'
-                  : 'text-slate-500 hover:text-emerald-600 after:scale-x-0'
+                  ? 'text-[#16a34a] border-b-2 border-[#16a34a]'
+                  : 'text-slate-700 hover:text-[#16a34a]'
               }`}
             >
-              About Us
+              ABOUT US
             </a>
             <a
               href="#contact-us"
-              className={`text-xs font-extrabold transition-all duration-200 uppercase tracking-wider relative py-1.5 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-emerald-600 after:transform after:origin-left after:transition-transform after:duration-200 hover:after:scale-x-100 ${
+              className={`text-xs font-black tracking-wider uppercase transition-colors relative py-1 ${
                 activeSection === 'contact-us'
-                  ? 'text-emerald-600 after:scale-x-100'
-                  : 'text-slate-500 hover:text-emerald-600 after:scale-x-0'
+                  ? 'text-[#16a34a] border-b-2 border-[#16a34a]'
+                  : 'text-slate-700 hover:text-[#16a34a]'
               }`}
             >
-              Contact Us
+              CONTACT US
             </a>
           </nav>
 
           {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3">
             <Link
               to="/login"
-              className="inline-flex h-10 items-center justify-center whitespace-nowrap text-xs font-bold text-slate-600 hover:text-emerald-700 border border-slate-200 hover:border-emerald-600 px-4 rounded-xl hover:bg-emerald-50/20 transition-all"
+              className="inline-flex h-9 items-center justify-center whitespace-nowrap text-xs font-bold text-[#15803d] border-2 border-[#16a34a] px-5 rounded-lg hover:bg-emerald-50 transition-all"
             >
               Sign In
             </Link>
             <Link
               to="/signup"
-              className="inline-flex h-10 items-center justify-center whitespace-nowrap px-5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-xs font-bold rounded-xl shadow-sm hover:shadow transition-all duration-150 active:scale-95"
+              className="inline-flex h-9 items-center justify-center whitespace-nowrap px-5 bg-[#15803d] hover:bg-[#166534] text-white text-xs font-bold rounded-lg shadow-sm transition-all active:scale-95"
             >
               Create Account
             </Link>
@@ -344,7 +270,7 @@ export const LandingPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
-            className="md:hidden p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-all border border-transparent hover:border-slate-100"
+            className="lg:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all"
             aria-label="Open navigation menu"
           >
             <Menu className="h-6 w-6" />
@@ -366,8 +292,8 @@ export const LandingPage: React.FC = () => {
             {/* Drawer Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100/80">
               <div className="flex items-center gap-2.5">
-                <div className="h-7 w-7 rounded-full overflow-hidden border-2 border-emerald-200 shadow-sm shadow-emerald-100/50 ring-1 ring-emerald-50">
-                  <img src={logoImg} alt="Library Logo" className="h-full w-full object-cover" />
+                <div className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center bg-white shadow-sm ring-1 ring-emerald-100">
+                  <img src={logoImg} alt="Library Logo" className="h-full w-full object-contain" />
                 </div>
                 <div>
                   <h3 className="text-[11px] font-black tracking-tight text-slate-700 uppercase leading-none">
@@ -400,15 +326,15 @@ export const LandingPage: React.FC = () => {
                 Home
               </a>
               <a
-                href="#catalog-preview"
+                href="#services"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`text-sm font-bold uppercase tracking-wider flex items-center gap-3 py-3 px-3 rounded-xl transition-all duration-150 ${
-                  activeSection === 'catalog-preview'
+                  activeSection === 'services'
                     ? 'text-emerald-700 bg-emerald-50 border-l-4 border-emerald-600 pl-2'
                     : 'text-slate-500 hover:text-emerald-700 hover:bg-emerald-50/50'
                 }`}
               >
-                Catalog
+                Services
               </a>
               <a
                 href="#how-to-access"
@@ -450,14 +376,14 @@ export const LandingPage: React.FC = () => {
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex w-full h-11 items-center justify-center text-sm font-bold text-slate-700 hover:text-emerald-700 bg-white border border-slate-200 hover:border-emerald-600 rounded-xl transition-all shadow-sm"
+                className="flex w-full h-11 items-center justify-center text-sm font-bold text-[#15803d] bg-white border-2 border-[#16a34a] rounded-xl transition-all shadow-sm"
               >
                 Sign In
               </Link>
               <Link
                 to="/signup"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex w-full h-11 items-center justify-center bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-sm font-bold rounded-xl shadow-md transition-all duration-150"
+                className="flex w-full h-11 items-center justify-center bg-[#15803d] hover:bg-[#166534] text-white text-sm font-bold rounded-xl shadow-md transition-all duration-150"
               >
                 Create Account
               </Link>
@@ -468,192 +394,188 @@ export const LandingPage: React.FC = () => {
       )}
 
       {/* Hero section */}
-      <section id="hero" className="relative text-white px-6 py-20 md:py-28 text-center overflow-hidden">
-        {/* Background Image Container with Blur effect and scale to prevent edge bleed */}
-        <div
-          className="absolute inset-0 bg-cover bg-center blur-[5px] scale-105 z-0"
+      <section id="hero" className="relative bg-[#06332c] text-white px-6 sm:px-8 lg:px-12 py-16 sm:py-20 lg:py-24 overflow-hidden min-h-[520px] flex items-center">
+        {/* Background Image: Full library banner */}
+        <div 
+          className="absolute inset-0 bg-cover bg-right md:bg-center z-0"
           style={{ backgroundImage: `url(${heroBgImg})` }}
         />
 
-        {/* Cinematic dark gradient overlay for superb contrast and legibility */}
-        <div className="absolute inset-0 bg-gradient-to-r from-primary-950/90 via-primary-950/75 to-emerald-950/85 z-10" />
+        {/* Global gentle photo dimming */}
+        <div className="absolute inset-0 bg-black/20 z-0" />
 
-        {/* Soft decorative blur circle on top of overlay */}
-        <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-72 h-72 rounded-full bg-emerald-500/10 blur-3xl z-10" />
+        {/* Slanted angled green gradient overlay (115deg) from left to right */}
+        <div className="absolute inset-0 bg-[linear-gradient(115deg,#06332c_0%,#06332c_38%,rgba(6,51,44,0.95)_50%,rgba(6,51,44,0.75)_65%,rgba(6,51,44,0.2)_82%,transparent_100%)] z-0" />
 
-        <div className="max-w-4xl mx-auto space-y-6 relative z-20 scroll-reveal">
-          <span className="px-3.5 py-1.5 bg-emerald-950/40 border border-emerald-500/30 rounded-full text-emerald-400 text-xs font-bold uppercase tracking-wider">
-            BALINGASAG MUNICIPAL PUBLIC LIBRARY
-          </span>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
-            Discover a World of Knowledge at Your Fingertips
-          </h1>
-          <p className="text-sm md:text-base text-emerald-100 max-w-2xl mx-auto font-medium leading-relaxed">
-            Welcome to the official digital portal of the Balingasag Municipal Public Library. Explore our dynamic catalog, borrow bestsellers, check outstanding balances, and track history.
-          </p>
+        {/* Slanted backdrop blur from left to right using angled mask */}
+        <div 
+          className="absolute inset-0 backdrop-blur-[6px] pointer-events-none z-0"
+          style={{
+            maskImage: 'linear-gradient(115deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 75%)',
+            WebkitMaskImage: 'linear-gradient(115deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 75%)'
+          }}
+        />
 
-          <div className="flex items-center justify-center gap-4 pt-4">
-            <Link
-              to="/signup"
-              className="px-6 py-3.5 bg-white text-emerald-900 hover:bg-emerald-50 text-sm font-bold rounded-xl shadow-lg transition-all duration-150 active:scale-95"
-            >
-              Get Library Account
-            </Link>
-            <a
-              href="#catalog-preview"
-              className="px-6 py-3.5 bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-100 text-sm font-bold rounded-xl border border-emerald-500/20 transition-all duration-150 active:scale-95"
-            >
-              Browse Catalog
-            </a>
-          </div>
-        </div>
-      </section>
+        {/* Diagonal glass accent ribbon */}
+        <div 
+          className="absolute inset-y-0 left-0 w-[70%] bg-gradient-to-r from-[#06332c]/40 via-emerald-900/20 to-transparent pointer-events-none z-0 hidden sm:block"
+          style={{ clipPath: 'polygon(0 0, 100% 0, 72% 100%, 0% 100%)' }}
+        />
 
-      {/* Info values banner */}
-      <section id="quick-info" className="max-w-7xl mx-auto w-full px-6 -mt-8 relative z-20 grid grid-cols-1 md:grid-cols-3 gap-6 scroll-reveal-stagger">
-        <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/40 rounded-2xl p-6 flex gap-4 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-100/30 hover:border-emerald-200 transition-all duration-300 group">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 flex-shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
-            <Clock className="h-6 w-6" />
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-slate-800 mb-1">Opening Hours</h4>
-            <p className="text-xs text-slate-500 leading-normal">
-              Monday - Friday: 8:00 AM - 5:00 PM<br />
-              Closed on Weekends & Public Holidays.
+        {/* Soft ambient background glow */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none z-0" />
+
+        <div className="max-w-7xl mx-auto w-full relative z-10">
+          <div className="max-w-3xl space-y-6 text-left scroll-reveal">
+            {/* Pill Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-slate-200 text-[11px] sm:text-xs font-bold uppercase tracking-wider backdrop-blur-md">
+              <Landmark className="h-3.5 w-3.5 text-[#4ade80]" />
+              <span>BALINGASAG MUNICIPAL PUBLIC LIBRARY • EST. 1991</span>
+            </div>
+
+            {/* Main Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.12] tracking-tight">
+              Borrow. Read. Grow. <span className="text-[#4ade80] block sm:inline">All in One Place</span>
+            </h1>
+
+            {/* Subtext */}
+            <p className="text-slate-200/90 text-sm sm:text-base leading-relaxed max-w-2xl font-normal">
+              Welcome to the official digital portal of Balingasag Municipal Public Library. Explore thousands of books, reserve physical titles online, manage your membership card, and access municipal learning resources.
             </p>
-          </div>
-        </div>
 
-        <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/40 rounded-2xl p-6 flex gap-4 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-100/30 hover:border-emerald-200 transition-all duration-300 group">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 flex-shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
-            <ShieldCheck className="h-6 w-6" />
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-slate-800 mb-1">Strict Borrowing Policies</h4>
-            <p className="text-xs text-slate-500 leading-normal">
-              Borrow up to 3 books for 14 days. Outstanding late dues incur daily charges of ₱5.00/day.
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/40 rounded-2xl p-6 flex gap-4 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-100/30 hover:border-emerald-200 transition-all duration-300 group">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 flex-shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
-            <HelpCircle className="h-6 w-6" />
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-slate-800 mb-1">Help & Guidance</h4>
-            <p className="text-xs text-slate-500 leading-normal">
-              Need assistance? Drop by the Municipal Information Counter or email library@balingasag.gov.ph
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Catalog Preview */}
-      <section id="catalog-preview" className="max-w-7xl mx-auto w-full px-6 py-16 flex-1 space-y-8 scroll-mt-24">
-        <div className="text-center space-y-2 scroll-reveal">
-          <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">
-            Explore our Curated Book Registry
-          </h2>
-          <p className="text-xs text-slate-400 font-semibold max-w-lg mx-auto">
-            Search our physical shelves and browse books. Create an account or sign in to borrow books digitally.
-          </p>
-        </div>
-
-        {/* Search and filter controls */}
-        <div className="flex flex-col sm:flex-row gap-4 bg-white/70 backdrop-blur-md p-4 rounded-2xl border border-slate-100 shadow-sm shadow-slate-100/10 justify-center w-full max-w-4xl mx-auto sm:items-center">
-          <div className="relative w-full sm:w-[550px]">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
-              <Search className="h-4.5 w-4.5" />
-            </span>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by Book Title, Author name, or ISBN number..."
-              className="w-full h-11 pl-12 pr-4 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm placeholder-slate-400"
-            />
-          </div>
-
-          <div className="flex gap-3 items-center">
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
-                <Filter className="h-4 w-4" />
-              </span>
-              <select
-                value={category}
-                onChange={(e) => handleFilterChange(e.target.value)}
-                className="pl-10 pr-8 h-11 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm text-slate-600 appearance-none font-medium cursor-pointer"
+            {/* CTA Button */}
+            <div className="pt-2">
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#16a34a] hover:bg-[#15803d] text-white text-sm font-bold rounded-xl shadow-lg shadow-emerald-950/40 hover:shadow-emerald-900/50 hover:gap-3 transition-all duration-200 active:scale-95 group"
               >
-                <option value="">All Categories</option>
-                {categoriesList.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-              <span className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400 text-[10px] font-bold">▼</span>
+                <span>Get Started</span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </div>
+
+            {/* Hero Quick Stats Row */}
+            <div className="pt-8 border-t border-white/15 flex items-center justify-start gap-6 sm:gap-10 flex-wrap">
+              <div>
+                <span className="block text-2xl sm:text-3xl font-black text-white">5,000+</span>
+                <span className="text-xs text-slate-300 font-medium">Titles Available</span>
+              </div>
+              <div className="h-9 w-px bg-white/20 hidden sm:block" />
+              <div>
+                <span className="block text-2xl sm:text-3xl font-black text-[#4ade80]">Free</span>
+                <span className="text-xs text-slate-300 font-medium">Municipal Access</span>
+              </div>
+              <div className="h-9 w-px bg-white/20 hidden sm:block" />
+              <div>
+                <span className="block text-2xl sm:text-3xl font-black text-white">Instant</span>
+                <span className="text-xs text-slate-300 font-medium">Book Holds</span>
+              </div>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Books grid layout */}
-        {catalogLoading && featuredBooks.length === 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, idx) => (
-              <div key={idx} className="bg-white border border-slate-100 rounded-2xl p-5 space-y-4 animate-pulse">
-                <div className="h-44 bg-slate-100 rounded-xl" />
-                <div className="space-y-2">
-                  <div className="h-4 bg-slate-100 rounded w-2/3" />
-                  <div className="h-3.5 bg-slate-100 rounded w-1/2" />
-                </div>
-                <div className="flex justify-between border-t border-slate-50 pt-3">
-                  <div className="h-3 bg-slate-100 rounded w-1/4" />
-                  <div className="h-3 bg-slate-100 rounded w-1/3" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : !catalogLoading && featuredBooks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-18 border border-dashed border-slate-200 rounded-3xl bg-white/40 text-slate-400">
-            <Book className="h-12 w-12 text-slate-300 mb-3" />
-            <h4 className="text-sm font-bold text-slate-600">No books found</h4>
-            <p className="text-[11px] text-slate-400 max-w-xs text-center mt-1">
-              Try adjusting your fuzzy search query or choosing a different genre filter.
+      {/* Library Services Section */}
+      <section id="services" className="py-20 bg-white border-t border-b border-slate-100 scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-6 space-y-16">
+          
+          {/* Section Header */}
+          <div className="text-center space-y-3 scroll-reveal">
+            <div className="flex flex-col items-center justify-center">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/60 rounded-full text-[10px] font-extrabold uppercase tracking-wider mb-2">
+                <Sparkles className="h-3 w-3 text-emerald-600" />
+                Library Services & System Capabilities
+              </span>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight">
+                Our Core Services & Digital Support
+              </h2>
+              <div className="w-14 h-1 bg-[#15803d] rounded-full mt-3"></div>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed">
+              Discover how Balingasag Municipal Public Library combines a welcoming learning sanctuary with automated digital systems to serve readers, researchers, and students.
             </p>
           </div>
-        ) : (
-          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-300 ease-in-out ${catalogLoading ? 'opacity-50 scale-[0.99] pointer-events-none' : 'opacity-100 scale-100'}`}>
-            {featuredBooks.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                onViewDetails={setSelectedBook}
-              />
-            ))}
-          </div>
-        )}
 
-        {/* Pagination component */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 pt-6">
-            <button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-              className="px-3.5 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-colors"
-            >
-              Prev
-            </button>
-            <span className="text-xs font-semibold text-slate-500 px-3">
-              Page {page} of {totalPages}
-            </span>
-            <button
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages}
-              className="px-3.5 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-colors"
-            >
-              Next
-            </button>
+          {/* 3 Services Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch scroll-reveal-stagger">
+            
+            {/* Service 1: General Reading and Study Services */}
+            <div className="bg-gradient-to-b from-white to-slate-50/80 rounded-2xl border border-slate-200/80 p-7 sm:p-8 shadow-sm hover:shadow-xl hover:border-emerald-300 transition-all duration-300 flex flex-col justify-between group">
+              <div className="space-y-5">
+                {/* Header with Icon and Badge */}
+                <div className="flex items-center justify-between">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                    <BookOpen className="h-7 w-7" />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+                    Service 01
+                  </span>
+                </div>
+
+                {/* Title & Description */}
+                <div className="space-y-3">
+                  <h3 className="text-xl font-black text-slate-800 tracking-tight leading-snug group-hover:text-emerald-800 transition-colors">
+                    General Reading and Study Services
+                  </h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    The library provides a quiet, air-conditioned environment where visitors can read books, study, and complete academic work. The proposed system supports this service by allowing librarians to efficiently manage library resources and monitor the availability of books.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Service 2: Research and Reference Access */}
+            <div className="bg-gradient-to-b from-white to-slate-50/80 rounded-2xl border border-slate-200/80 p-7 sm:p-8 shadow-sm hover:shadow-xl hover:border-emerald-300 transition-all duration-300 flex flex-col justify-between group">
+              <div className="space-y-5">
+                {/* Header with Icon and Badge */}
+                <div className="flex items-center justify-between">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                    <Search className="h-7 w-7" />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+                    Service 02
+                  </span>
+                </div>
+
+                {/* Title & Description */}
+                <div className="space-y-3">
+                  <h3 className="text-xl font-black text-slate-800 tracking-tight leading-snug group-hover:text-emerald-800 transition-colors">
+                    Research and Reference Access
+                  </h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    The library provides access to printed books and reference materials for educational and research purposes. The proposed system digitizes the catalog, making it easier for users to locate relevant materials.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Service 3: Free Public Wi-Fi */}
+            <div className="bg-gradient-to-b from-white to-slate-50/80 rounded-2xl border border-slate-200/80 p-7 sm:p-8 shadow-sm hover:shadow-xl hover:border-emerald-300 transition-all duration-300 flex flex-col justify-between group">
+              <div className="space-y-5">
+                {/* Header with Icon and Badge */}
+                <div className="flex items-center justify-between">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                    <Wifi className="h-7 w-7" />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+                    Service 03
+                  </span>
+                </div>
+
+                {/* Title & Description */}
+                <div className="space-y-3">
+                  <h3 className="text-xl font-black text-slate-800 tracking-tight leading-snug group-hover:text-emerald-800 transition-colors">
+                    Free Public Wi-Fi
+                  </h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    The library provides free internet access for visitors to conduct online research and educational activities. While the Wi-Fi infrastructure is managed separately, the proposed system complements this service by providing digital library functions accessible through internet-connected devices.
+                  </p>
+                </div>
+              </div>
+            </div>
+
           </div>
-        )}
+        </div>
       </section>
 
       {/* How to Access the Library Section */}
@@ -771,94 +693,6 @@ export const LandingPage: React.FC = () => {
 
         </div>
       </section>
-
-      {/* Book details Modal overlay */}
-      <Modal
-        isOpen={!!selectedBook}
-        onClose={() => setSelectedBook(null)}
-        title="Book Profile Details"
-        footer={
-          selectedBook && (
-            <div className="flex items-center gap-3 w-full justify-between">
-              <Button
-                variant="outline"
-                onClick={() => setSelectedBook(null)}
-                className="h-11 px-5 text-xs font-bold"
-              >
-                Dismiss
-              </Button>
-              <div className="flex items-center gap-3">
-                <span className="text-[11px] font-bold text-slate-400">Want to borrow this book?</span>
-                <Link
-                  to="/login"
-                  className="inline-flex h-11 items-center justify-center px-5 bg-gradient-to-r from-emerald-600 to-primary-700 hover:from-emerald-700 hover:to-primary-800 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-100 transition-all"
-                >
-                  Sign In to Borrow
-                </Link>
-              </div>
-            </div>
-          )
-        }
-      >
-        {selectedBook && (
-          <div className="space-y-6">
-            <div className="flex flex-col md:flex-row gap-6">
-              {/* Cover */}
-              <div className="w-full md:w-44 h-56 bg-slate-50 border border-slate-100 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
-                {selectedBook.cover_image && selectedBook.cover_image.startsWith('http') ? (
-                  <img src={selectedBook.cover_image} alt={selectedBook.title} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-slate-400 p-4 text-center">
-                    <Book className="h-10 w-10 text-emerald-600/50 mb-2" />
-                    <span className="text-[10px] uppercase font-bold tracking-wider">{selectedBook.category}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Title & metadata */}
-              <div className="flex-1 space-y-4">
-                <div className="space-y-1.5">
-                  <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-bold rounded-md uppercase tracking-wider">
-                    {selectedBook.category}
-                  </span>
-                  <h3 className="text-lg font-bold text-slate-800 tracking-tight leading-snug">
-                    {selectedBook.title}
-                  </h3>
-                  <p className="text-xs text-slate-400 font-semibold">Written by {selectedBook.author}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 text-xs font-semibold border-t border-b border-slate-100 py-3.5 text-slate-500">
-                  <div>
-                    <span className="block text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">ISBN</span>
-                    <span className="text-slate-700">{selectedBook.isbn}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">Year Published</span>
-                    <span className="text-slate-700">{selectedBook.year}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">Copies Available</span>
-                    <span className={selectedBook.available_copies > 0 ? 'text-emerald-600 font-bold' : 'text-rose-500 font-bold'}>
-                      {selectedBook.available_copies} of {selectedBook.total_copies}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">Status</span>
-                    <span className="capitalize">{selectedBook.status}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <span className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">Abstract Description</span>
-              <p className="text-xs text-slate-500 leading-relaxed bg-slate-50 border border-slate-100/50 p-4 rounded-xl">
-                {selectedBook.description || 'No summary overview currently cataloged for this book.'}
-              </p>
-            </div>
-          </div>
-        )}
-      </Modal>
 
       {/* About Us Comprehensive Section */}
       <section id="about-us" className="bg-white border-t border-b border-slate-100 py-16 scroll-mt-24">
@@ -1097,7 +931,10 @@ export const LandingPage: React.FC = () => {
                 <a href="#home" className="text-primary-200/80 hover:text-white transition-colors">Home</a>
               </li>
               <li>
-                <a href="#catalog-preview" className="text-primary-200/80 hover:text-white transition-colors">Catalog</a>
+                <a href="#services" className="text-primary-200/80 hover:text-white transition-colors">Services</a>
+              </li>
+              <li>
+                <a href="#how-to-access" className="text-primary-200/80 hover:text-white transition-colors">Access Guide</a>
               </li>
               <li>
                 <a href="#about-us" className="text-primary-200/80 hover:text-white transition-colors">About Us</a>

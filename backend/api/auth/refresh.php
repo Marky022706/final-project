@@ -22,7 +22,7 @@ if (!$payload || !isset($payload['id'])) {
     Response::unauthorized('Invalid or expired refresh token.');
 }
 
-$userId = (int)$payload['id'];
+$userId = $payload['id'];
 $tokenHash = hash('sha256', $refreshToken);
 
 try {
@@ -63,7 +63,7 @@ try {
     
     // 4. Generate new pair of tokens
     $userPayload = [
-        'id' => (int)$user['id'],
+        'id' => $user['id'],
         'first_name' => $user['first_name'],
         'last_name' => $user['last_name'],
         'email' => $user['email'],
@@ -71,7 +71,7 @@ try {
     ];
     
     $newAccessToken = JWT::generateAccess($userPayload);
-    $newRefreshToken = JWT::generateRefresh(['id' => (int)$user['id']]);
+    $newRefreshToken = JWT::generateRefresh(['id' => $user['id']]);
     
     // 5. Store the new refresh token in the database
     $newTokenHash = hash('sha256', $newRefreshToken);

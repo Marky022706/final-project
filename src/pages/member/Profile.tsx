@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { User, Phone, MapPin, Mail, Calendar, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { User, Phone, MapPin, Mail, Calendar, ShieldCheck, CheckCircle2, QrCode } from 'lucide-react';
+import QRCode from 'react-qr-code';
 
 export const Profile: React.FC = () => {
   const { user, updateProfile } = useAuth();
@@ -14,12 +15,11 @@ export const Profile: React.FC = () => {
   const [phone, setPhone] = useState(user?.phone || '');
   const [address, setAddress] = useState(user?.address || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showQR, setShowQR] = useState(false);
 
   if (!user) return null;
 
@@ -40,12 +40,6 @@ export const Profile: React.FC = () => {
       return;
     }
 
-    if (password && password !== confirmPassword) {
-      setError('New passwords do not match. Please verify.');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -56,11 +50,8 @@ export const Profile: React.FC = () => {
         phone,
         address,
         email,
-        password: password || undefined,
       });
       setSuccess('Your profile and settings have been successfully updated!');
-      setPassword('');
-      setConfirmPassword('');
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Failed to update profile details.');
     } finally {
@@ -114,6 +105,30 @@ export const Profile: React.FC = () => {
               <span>Member Since {user.member_since ? new Date(user.member_since).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : '—'}</span>
             </div>
           </div>
+
+          {/* QR Code Section */}
+          <button
+            onClick={() => setShowQR(!showQR)}
+            className="w-full mt-4 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-all text-xs"
+          >
+            <QrCode className="h-4 w-4" />
+            {showQR ? 'Hide' : 'Show'} Library QR Code
+          </button>
+
+          {showQR && user.qr_code && (
+            <div className="w-full mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <div className="flex flex-col items-center space-y-3">
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <QRCode value={user.qr_code} size={150} />
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="text-[10px] font-bold text-slate-600">Your Library QR Code</p>
+                  <p className="text-[9px] text-slate-400">Scan this at the library entrance for attendance</p>
+                  <p className="text-[9px] font-mono text-slate-500">{user.qr_code}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </Card>
       </div>
 
@@ -228,46 +243,6 @@ export const Profile: React.FC = () => {
                   placeholder="Barangay 3, Balingasag"
                   className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm"
                 />
-              </div>
-            </div>
-
-            {/* Change Password Panel */}
-            <div className="border-t border-slate-100 pt-5 space-y-4">
-              <div className="space-y-1">
-                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Update Account Password
-                </h3>
-                <p className="text-[10px] text-slate-400 font-semibold">
-                  Leave these fields blank if you do not wish to modify your account password.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
-                    New Password
-                  </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide">
-                    Confirm New Password
-                  </label>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-550/15 focus:border-primary-550 transition-all duration-200 text-sm"
-                  />
-                </div>
               </div>
             </div>
 
