@@ -6,8 +6,7 @@ import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
 import { 
   BookOpen, Edit, Trash2, Plus, Info, CheckCircle, XCircle, Search, Sparkles, 
-  X, Loader2, Archive, RotateCcw, RefreshCw, Layers, MapPin, Hash, Building2, 
-  Calendar, BookCopy, QrCode
+  X, Loader2, Archive, RotateCcw, RefreshCw, Layers, MapPin
 } from 'lucide-react';
 import { fetchBookByIsbn } from '../../lib/bookApi';
 import { useToast } from '../../context/ToastContext';
@@ -16,19 +15,6 @@ export const AdminBooks: React.FC = () => {
   const toast = useToast();
   const [books, setBooks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
-
-  // Click outside to close dropdowns
-  useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('.actions-dropdown-container')) {
-        setActiveDropdownId(null);
-      }
-    };
-    document.addEventListener('click', handleOutsideClick);
-    return () => document.removeEventListener('click', handleOutsideClick);
-  }, []);
 
   // Modals state
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -75,15 +61,6 @@ export const AdminBooks: React.FC = () => {
     'Literature & Poetry',
     'Children\'s Books',
     'General Reference'
-  ];
-
-  const formats = [
-    'Paperback',
-    'Hardcover',
-    'eBook',
-    'Periodical / Magazine',
-    'Reference Volume',
-    'Spiral-bound'
   ];
 
   const shelfLocations = [

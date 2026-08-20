@@ -12,7 +12,6 @@ export const AdminArchivedBooks: React.FC = () => {
   const toast = useToast();
   const [books, setBooks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
 
   // Unarchive confirm modal state
   const [unarchiveConfirmBook, setUnarchiveConfirmBook] = useState<any | null>(null);
@@ -20,18 +19,6 @@ export const AdminArchivedBooks: React.FC = () => {
 
   // Delete confirm modal state
   const [deleteConfirmBook, setDeleteConfirmBook] = useState<any | null>(null);
-
-  // Click outside to close dropdowns
-  useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('.actions-dropdown-container')) {
-        setActiveDropdownId(null);
-      }
-    };
-    document.addEventListener('click', handleOutsideClick);
-    return () => document.removeEventListener('click', handleOutsideClick);
-  }, []);
 
   const fetchArchivedBooks = async () => {
     setLoading(true);

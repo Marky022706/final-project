@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
 import { useToast } from '../../context/ToastContext';
 import { 
-  Camera, CameraOff, CheckCircle, XCircle, Clock, User, LogIn, LogOut, 
+  Camera, CameraOff, CheckCircle, Clock, LogIn, LogOut, 
   ArrowLeft, Send, Sparkles, Upload, RefreshCw, SwitchCamera, AlertCircle 
 } from 'lucide-react';
 

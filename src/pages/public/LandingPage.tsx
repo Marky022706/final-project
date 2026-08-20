@@ -395,35 +395,45 @@ export const LandingPage: React.FC = () => {
 
       {/* Hero section */}
       <section id="hero" className="relative bg-[#06332c] text-white px-6 sm:px-8 lg:px-12 py-16 sm:py-20 lg:py-24 overflow-hidden min-h-[520px] flex items-center">
-        {/* Background Image: Full library banner */}
+        {/* Base Background Image: Sharp and vivid */}
         <div 
-          className="absolute inset-0 bg-cover bg-right md:bg-center z-0"
+          className="absolute inset-0 bg-cover bg-right md:bg-center z-0 scale-105"
           style={{ backgroundImage: `url(${heroBgImg})` }}
         />
 
-        {/* Global gentle photo dimming */}
-        <div className="absolute inset-0 bg-black/20 z-0" />
-
-        {/* Slanted angled green gradient overlay (115deg) from left to right */}
-        <div className="absolute inset-0 bg-[linear-gradient(115deg,#06332c_0%,#06332c_38%,rgba(6,51,44,0.95)_50%,rgba(6,51,44,0.75)_65%,rgba(6,51,44,0.2)_82%,transparent_100%)] z-0" />
-
-        {/* Slanted backdrop blur from left to right using angled mask */}
+        {/* Left-Side Prominent Blurred Image Layer */}
         <div 
-          className="absolute inset-0 backdrop-blur-[6px] pointer-events-none z-0"
-          style={{
+          className="absolute inset-0 bg-cover bg-right md:bg-center z-0 filter blur-[14px] md:blur-[18px] scale-110 pointer-events-none"
+          style={{ 
+            backgroundImage: `url(${heroBgImg})`,
             maskImage: 'linear-gradient(115deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 75%)',
             WebkitMaskImage: 'linear-gradient(115deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 75%)'
           }}
         />
 
+        {/* Global subtle photo dimming */}
+        <div className="absolute inset-0 bg-black/25 z-0" />
+
+        {/* Slanted translucent emerald overlay (115deg) - maintains readability while letting blurred textures through */}
+        <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(6,51,44,0.88)_0%,rgba(6,51,44,0.82)_35%,rgba(6,51,44,0.65)_55%,rgba(6,51,44,0.25)_78%,transparent_100%)] z-0" />
+
+        {/* Frosted backdrop blur layer */}
+        <div 
+          className="absolute inset-0 backdrop-blur-[8px] md:backdrop-blur-[12px] pointer-events-none z-0"
+          style={{
+            maskImage: 'linear-gradient(115deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 42%, rgba(0,0,0,0) 72%)',
+            WebkitMaskImage: 'linear-gradient(115deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 42%, rgba(0,0,0,0) 72%)'
+          }}
+        />
+
         {/* Diagonal glass accent ribbon */}
         <div 
-          className="absolute inset-y-0 left-0 w-[70%] bg-gradient-to-r from-[#06332c]/40 via-emerald-900/20 to-transparent pointer-events-none z-0 hidden sm:block"
+          className="absolute inset-y-0 left-0 w-[70%] bg-gradient-to-r from-[#06332c]/50 via-emerald-900/25 to-transparent pointer-events-none z-0 hidden sm:block"
           style={{ clipPath: 'polygon(0 0, 100% 0, 72% 100%, 0% 100%)' }}
         />
 
         {/* Soft ambient background glow */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none z-0" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-emerald-500/15 blur-3xl pointer-events-none z-0" />
 
         <div className="max-w-7xl mx-auto w-full relative z-10">
           <div className="max-w-3xl space-y-6 text-left scroll-reveal">

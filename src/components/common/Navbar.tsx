@@ -319,7 +319,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
         </div>
 
         {/* Modern User Account Dropdown */}
-        <UserAccountDropdown onLogoutClick={() => setIsLogoutModalOpen(true)} />
+        <UserAccountDropdown onLogoutClick={handleLogout} />
       </div>
 
       {/* Logout Confirmation Modal */}
