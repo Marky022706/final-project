@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../lib/api';
 import ReportsChart from '../../components/admin/ReportsChart';
-import OverdueChart from '../../components/admin/OverdueChart';
 import Card from '../../components/common/Card';
 import { Coins, TrendingUp, BookOpen, Users } from 'lucide-react';
 
@@ -17,7 +16,6 @@ export const AdminReports: React.FC = () => {
     paid_fines: 0.00
   });
 
-  const [monthlyRevenue, setMonthlyRevenue] = useState<any[]>([]);
   const [categoryDistribution, setCategoryDistribution] = useState<any[]>([]);
   const [topBorrowedBooks, setTopBorrowedBooks] = useState<any[]>([]);
 
@@ -32,7 +30,6 @@ export const AdminReports: React.FC = () => {
 
         if (resKpis.data && resKpis.data.success) {
           setKpis(resKpis.data.data.kpis);
-          setMonthlyRevenue(resKpis.data.data.monthly_revenue);
         }
 
         if (resMostBorrowed.data && resMostBorrowed.data.success) {
@@ -118,9 +115,6 @@ export const AdminReports: React.FC = () => {
 
           {/* Graphics Distribution */}
           <ReportsChart categoriesData={categoryDistribution} booksData={topBorrowedBooks} />
-
-          {/* Line revenue area chart */}
-          <OverdueChart revenueData={monthlyRevenue} />
         </>
       )}
     </div>

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import api from '../lib/api';
 import DashboardStats from '../components/admin/DashboardStats';
 import ReportsChart from '../components/admin/ReportsChart';
-import OverdueChart from '../components/admin/OverdueChart';
 import Card from '../components/common/Card';
 import { AlertTriangle, Library, ShieldAlert, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -21,7 +20,6 @@ export const AdminDashboard: React.FC = () => {
     paid_fines: 0.00
   });
   
-  const [monthlyRevenue, setMonthlyRevenue] = useState<any[]>([]);
   const [categoryDistribution, setCategoryDistribution] = useState<any[]>([]);
   const [topBorrowedBooks, setTopBorrowedBooks] = useState<any[]>([]);
   const [recentOverdue, setRecentOverdue] = useState<any[]>([]);
@@ -39,7 +37,6 @@ export const AdminDashboard: React.FC = () => {
 
         if (resKpis.data && resKpis.data.success) {
           setKpis(resKpis.data.data.kpis);
-          setMonthlyRevenue(resKpis.data.data.monthly_revenue);
         }
 
         if (resMostBorrowed.data && resMostBorrowed.data.success) {
@@ -90,14 +87,9 @@ export const AdminDashboard: React.FC = () => {
           {/* Graphical Data Trends */}
           <ReportsChart categoriesData={categoryDistribution} booksData={topBorrowedBooks} />
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Revenue curve chart */}
-            <div className="lg:col-span-2">
-              <OverdueChart revenueData={monthlyRevenue} />
-            </div>
-
+          <div className="w-full">
             {/* Overdue Borrowers lists */}
-            <Card className="flex flex-col h-[340px]">
+            <Card className="flex flex-col min-h-[340px]">
               <div className="flex items-center justify-between border-b border-slate-50 pb-4 mb-4">
                 <div>
                   <h4 className="text-base font-bold flex items-center gap-1.5 text-rose-600">

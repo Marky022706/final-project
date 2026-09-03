@@ -40,10 +40,7 @@ import AdminActivityLog from './pages/admin/AdminActivityLog';
 import QRAttendanceScan from './pages/admin/QRAttendanceScan';
 import AdminAttendance from './pages/admin/AdminAttendance';
 import RequestManagement from './pages/admin/RequestManagement';
-import AdminSettings from './pages/admin/AdminSettings';
-import AdminRecycleBin from './pages/admin/AdminRecycleBin';
-import AdminBackupRestore from './pages/admin/AdminBackupRestore';
-import AdminSystemLogs from './pages/admin/AdminSystemLogs';
+
 import NotFound from './pages/NotFound';
 
 // Global AI Chatbot Component
@@ -128,7 +125,7 @@ export const App: React.FC = () => {
             <Route
               path="/admin/users"
               element={
-                <AdminRoute>
+                <AdminRoute superAdminOnly={true}>
                   <AdminUsers />
                 </AdminRoute>
               }
@@ -143,6 +140,14 @@ export const App: React.FC = () => {
             />
             <Route
               path="/admin/transactions"
+              element={
+                <AdminRoute>
+                  <AdminTransactions />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/circulation"
               element={
                 <AdminRoute>
                   <AdminTransactions />
@@ -176,7 +181,7 @@ export const App: React.FC = () => {
             <Route
               path="/admin/activity-log"
               element={
-                <AdminRoute>
+                <AdminRoute superAdminOnly={true}>
                   <AdminActivityLog />
                 </AdminRoute>
               }
@@ -189,38 +194,7 @@ export const App: React.FC = () => {
                 </AdminRoute>
               }
             />
-            <Route
-              path="/admin/settings"
-              element={
-                <AdminRoute superAdminOnly={true}>
-                  <AdminSettings />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/recycle-bin"
-              element={
-                <AdminRoute>
-                  <AdminRecycleBin />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/backup-restore"
-              element={
-                <AdminRoute superAdminOnly={true}>
-                  <AdminBackupRestore />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/system-logs"
-              element={
-                <AdminRoute superAdminOnly={true}>
-                  <AdminSystemLogs />
-                </AdminRoute>
-              }
-            />
+
           </Route>
 
           {/* QR Scanner - Fullscreen */}

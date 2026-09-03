@@ -20,11 +20,11 @@ export const Button: React.FC<ButtonProps> = ({
   const baseStyle = 'inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-95 disabled:opacity-50 disabled:pointer-events-none';
   
   const variants = {
-    primary: 'bg-gradient-to-r from-emerald-600 to-primary-700 text-white hover:from-emerald-700 hover:to-primary-800 focus:ring-primary-550 border border-transparent shadow-md shadow-emerald-100',
-    secondary: 'bg-emerald-50 text-primary-800 hover:bg-emerald-100 focus:ring-emerald-300 border border-transparent',
-    danger: 'bg-rose-600 text-white hover:bg-rose-755 hover:bg-rose-700 focus:ring-rose-500 border border-transparent shadow-md shadow-rose-100',
-    outline: 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 focus:ring-slate-300',
-    ghost: 'text-slate-600 hover:bg-slate-100 focus:ring-slate-200 border border-transparent',
+    primary: 'bg-gradient-to-r from-emerald-600 to-primary-700 text-white hover:from-emerald-700 hover:to-primary-800 focus:ring-primary-550 border border-transparent shadow-md shadow-emerald-950/20 active:scale-95',
+    secondary: 'bg-emerald-50 dark:bg-emerald-950/60 text-primary-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 focus:ring-emerald-300 border border-transparent active:scale-95',
+    danger: 'bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-500 border border-transparent shadow-md shadow-rose-950/20 active:scale-95',
+    outline: 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 focus:ring-slate-300 active:scale-95',
+    ghost: 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:ring-slate-200 border border-transparent active:scale-95',
   };
 
   const sizes = {

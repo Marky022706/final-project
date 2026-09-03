@@ -74,22 +74,35 @@ const BarTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export const ReportsChart: React.FC<ChartProps> = ({ categoriesData, booksData }) => {
+export const ReportsChart: React.FC<ChartProps> = ({ categoriesData = [], booksData = [] }) => {
+  // Normalize categories data defensively
+  const safeCategories = (categoriesData || []).map(c => ({
+    name: c.name || (c as any).category || 'General',
+    value: Number(c.value ?? (c as any).count ?? 0)
+  }));
+
+  // Normalize books data defensively
+  const safeBooks = (booksData || []).map(b => ({
+    name: b.name || (b as any).title || 'Untitled Book',
+    author: b.author || 'Unknown Author',
+    value: Number(b.value ?? (b as any).borrow_count ?? 0)
+  }));
+
   // Compute total for percentage calculation
-  const total = categoriesData.reduce((sum, item) => sum + item.value, 0);
-  const categoriesWithTotal = categoriesData.map(item => ({ ...item, total }));
+  const total = safeCategories.reduce((sum, item) => sum + item.value, 0);
+  const categoriesWithTotal = safeCategories.map(item => ({ ...item, total }));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
       {/* Category distribution - Pie Chart */}
       <Card className="flex flex-col h-[420px]">
         <div className="mb-4">
-          <h4 className="text-base font-bold text-slate-800">Borrowings by Genre/Category</h4>
+          <h4 className="text-base font-bold text-slate-800 dark:text-slate-100">Borrowings by Genre/Category</h4>
           <p className="text-xs text-slate-400">Loan share by book genre — click segments for details</p>
         </div>
 
         <div className="flex-1 w-full relative min-h-0">
-          {categoriesData.length === 0 ? (
+          {safeCategories.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-xs font-semibold">
               No categories statistics available yet.
             </div>
@@ -131,15 +144,15 @@ export const ReportsChart: React.FC<ChartProps> = ({ categoriesData, booksData }
         </div>
 
         {/* Legend with colored dots and labels */}
-        {categoriesData.length > 0 && (
-          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 border-t border-slate-50 pt-3">
-            {categoriesData.map((item, idx) => (
+        {safeCategories.length > 0 && (
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 border-t border-slate-50 dark:border-slate-800 pt-3">
+            {safeCategories.map((item, idx) => (
               <div key={idx} className="flex items-center gap-1.5">
                 <span 
                   className="h-2.5 w-2.5 rounded-full flex-shrink-0" 
                   style={{ backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] }}
                 />
-                <span className="text-xs font-bold text-slate-600 capitalize">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 capitalize">
                   {item.name}
                 </span>
                 <span className="text-xs font-semibold text-slate-400">
@@ -154,12 +167,12 @@ export const ReportsChart: React.FC<ChartProps> = ({ categoriesData, booksData }
       {/* Top books - Bar Chart */}
       <Card className="flex flex-col h-[420px]">
         <div className="mb-2">
-          <h4 className="text-base font-bold text-slate-800">Top 5 Most Checked Out Books</h4>
+          <h4 className="text-base font-bold text-slate-800 dark:text-slate-100">Top 5 Most Checked Out Books</h4>
           <p className="text-xs text-slate-400">Titles with highest cumulative circulation volume</p>
         </div>
 
         <div className="flex-1 w-full relative min-h-0">
-          {booksData.length === 0 ? (
+          {safeBooks.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-xs font-semibold">
               No book borrowings recorded yet.
             </div>
@@ -167,7 +180,7 @@ export const ReportsChart: React.FC<ChartProps> = ({ categoriesData, booksData }
             <>
               <ResponsiveContainer width="100%" height="88%" minWidth={0}>
                 <BarChart
-                  data={booksData}
+                  data={safeBooks}
                   margin={{ top: 14, right: 10, left: -25, bottom: 30 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
@@ -177,7 +190,7 @@ export const ReportsChart: React.FC<ChartProps> = ({ categoriesData, booksData }
                     axisLine={false}
                     tickLine={false}
                     interval={0}
-                    tickFormatter={(val) => val.length > 13 ? `${val.substring(0, 11)}…` : val}
+                    tickFormatter={(val) => val && typeof val === 'string' && val.length > 13 ? `${val.substring(0, 11)}…` : String(val || '')}
                   />
                   <YAxis 
                     tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
@@ -193,7 +206,7 @@ export const ReportsChart: React.FC<ChartProps> = ({ categoriesData, booksData }
                     maxBarSize={48}
                     name="Total Checkouts"
                   >
-                    {booksData.map((_, idx) => (
+                    {safeBooks.map((_, idx) => (
                       <Cell 
                         key={`bar-cell-${idx}`} 
                         fill={BAR_COLORS[idx % BAR_COLORS.length]} 
@@ -204,15 +217,15 @@ export const ReportsChart: React.FC<ChartProps> = ({ categoriesData, booksData }
               </ResponsiveContainer>
 
               {/* Color key legend below the bar chart */}
-              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 pt-1 border-t border-slate-50">
-                {booksData.map((item, idx) => (
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 pt-1 border-t border-slate-50 dark:border-slate-800">
+                {safeBooks.map((item, idx) => (
                   <div key={idx} className="flex items-center gap-1.5">
                     <span 
                       className="h-2.5 w-2.5 rounded-sm flex-shrink-0" 
                       style={{ backgroundColor: BAR_COLORS[idx % BAR_COLORS.length] }}
                     />
-                    <span className="text-[11px] font-bold text-slate-600 truncate max-w-[90px]" title={item.name}>
-                      {item.name.length > 12 ? `${item.name.substring(0, 10)}…` : item.name}
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 truncate max-w-[90px]" title={item.name || ''}>
+                      {item.name && item.name.length > 12 ? `${item.name.substring(0, 10)}…` : (item.name || 'Book')}
                     </span>
                     <span className="text-[11px] text-slate-400 font-semibold">({item.value})</span>
                   </div>

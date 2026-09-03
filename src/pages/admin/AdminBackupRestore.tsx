@@ -1,5 +1,5 @@
-// src/pages/admin/AdminBackupRestore.tsx
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Database, RotateCcw, Plus, AlertTriangle, CheckCircle2, AlertCircle, HardDrive, FileCode } from 'lucide-react';
 import api from '../../lib/api';
 import Button from '../../components/common/Button';
@@ -190,24 +190,24 @@ export const AdminBackupRestore: React.FC = () => {
       )}
 
       {/* Confirmation Modal */}
-      {selectedBackup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+      {selectedBackup && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
           <div className="fixed inset-0" onClick={() => setSelectedBackup(null)} />
 
-          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 space-y-5 z-10 animate-scale-up">
+          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 space-y-5 z-10 animate-scale-up">
             <div className="flex items-center gap-3">
               <div className="h-11 w-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center">
                 <AlertTriangle className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="text-base font-extrabold text-slate-800">Confirm Database Restoration</h3>
-                <p className="text-xs text-slate-400 font-mono font-bold">
+                <h3 className="text-base font-extrabold text-slate-800 dark:text-slate-100">Confirm Database Restoration</h3>
+                <p className="text-xs text-slate-400 dark:text-slate-500 font-mono font-bold">
                   {selectedBackup.backup_name}
                 </p>
               </div>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               Restoring from this snapshot will replace all active database tables with the state saved on <strong>{new Date(selectedBackup.created_at).toLocaleString()}</strong>.
             </p>
 
@@ -225,7 +225,8 @@ export const AdminBackupRestore: React.FC = () => {
               </Button>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

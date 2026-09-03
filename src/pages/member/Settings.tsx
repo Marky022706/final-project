@@ -1,5 +1,5 @@
-// src/pages/member/Settings.tsx
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../context/ThemeContext';
 import { 
@@ -11,12 +11,13 @@ import {
   LogOut,
   Bell,
   Shield,
-  Save
+  Save,
+  Type
 } from 'lucide-react';
 
 export const Settings: React.FC = () => {
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, fontSize, setFontSize } = useTheme();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [contactSettings, setContactSettings] = useState({
     phone: user?.phone || '',
@@ -73,6 +74,7 @@ export const Settings: React.FC = () => {
         
         <div className="flex gap-3">
           <button
+            type="button"
             onClick={() => {
               if (theme === 'dark') toggleTheme();
             }}
@@ -87,6 +89,7 @@ export const Settings: React.FC = () => {
           </button>
           
           <button
+            type="button"
             onClick={() => {
               if (theme === 'light') toggleTheme();
             }}
@@ -99,6 +102,60 @@ export const Settings: React.FC = () => {
             <Moon className="h-5 w-5 text-slate-600 dark:text-slate-400" />
             <span className="font-medium text-slate-700 dark:text-slate-300">Dark</span>
           </button>
+        </div>
+      </div>
+
+      {/* Font Size Settings */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+            <Type className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">System Font Size</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Adjust the font size across the entire system for optimal readability</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {[
+            { id: 'small' as const, label: 'Small', sizeDesc: '14px • Compact', badgeText: 'Aa' },
+            { id: 'medium' as const, label: 'Medium', sizeDesc: '16px • Default', badgeText: 'Aa' },
+            { id: 'large' as const, label: 'Large', sizeDesc: '18px • Readable', badgeText: 'Aa' },
+          ].map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setFontSize(item.id)}
+              className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all text-center ${
+                fontSize === item.id
+                  ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-900/20 shadow-sm ring-1 ring-emerald-500'
+                  : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-slate-50/50 dark:bg-slate-800/40'
+              }`}
+            >
+              <span className={`font-black mb-1 ${
+                item.id === 'small' ? 'text-sm text-slate-600 dark:text-slate-400' :
+                item.id === 'large' ? 'text-2xl text-slate-800 dark:text-slate-100' :
+                'text-lg text-slate-700 dark:text-slate-200'
+              }`}>
+                {item.badgeText}
+              </span>
+              <span className="font-bold text-sm text-slate-800 dark:text-slate-200">
+                {item.label}
+              </span>
+              <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                {item.sizeDesc}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Live Font Preview Box */}
+        <div className="mt-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Live Preview</p>
+          <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+            The Balingasag Municipal Library system font size is currently set to <strong className="text-emerald-600 dark:text-emerald-400 capitalize">{fontSize}</strong>. All tables, text, buttons, and navigation adapt automatically.
+          </p>
         </div>
       </div>
 
@@ -270,7 +327,7 @@ export const Settings: React.FC = () => {
       </div>
 
       {/* Logout Confirmation Modal */}
-      {isLogoutModalOpen && (
+      {isLogoutModalOpen && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div 
             className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm animate-fade-in"
@@ -292,12 +349,14 @@ export const Settings: React.FC = () => {
 
             <div className="flex gap-3 pt-2.5">
               <button
+                type="button"
                 onClick={() => setIsLogoutModalOpen(false)}
                 className="flex-1 px-4 py-2.5 border border-slate-200 hover:border-slate-300 text-slate-600 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 transition-all active:scale-95"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={confirmLogout}
                 className="flex-1 px-4 py-2.5 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-100 transition-all active:scale-95"
               >
@@ -305,7 +364,8 @@ export const Settings: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

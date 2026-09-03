@@ -30,13 +30,17 @@ export const MemberDashboard: React.FC = () => {
         // Fetch active loans
         const responseLoans = await api.get('/transactions/list', { params: { status: 'active' } });
         if (responseLoans.data && responseLoans.data.success) {
-          setActiveLoans(responseLoans.data.data.slice(0, 3));
+          const loansData = Array.isArray(responseLoans.data.data) ? responseLoans.data.data : [];
+          setActiveLoans(loansData.slice(0, 3));
         }
 
         // Fetch new book arrivals
         const responseNew = await api.get('/books/getAll', { params: { limit: 3 } });
         if (responseNew.data && responseNew.data.success) {
-          setNewArrivals(responseNew.data.data.books);
+          const booksData = Array.isArray(responseNew.data.data?.books)
+            ? responseNew.data.data.books
+            : (Array.isArray(responseNew.data.data) ? responseNew.data.data : []);
+          setNewArrivals(booksData);
         }
 
         // Sync fresh profile stats

@@ -45,23 +45,23 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm animate-modal-backdrop"
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-modal-backdrop"
         onClick={onClose}
       />
 
       {/* Modal Dialog Window */}
-      <div className={`relative w-full bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-modal-dialog z-10 ${sizes[size]} max-h-[90vh]`}>
+      <div className={`relative w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden animate-modal-dialog z-10 ${sizes[size]} max-h-[90vh] my-auto mx-auto`}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-slate-50/50">
-          <h3 className="text-base font-bold text-slate-800 tracking-tight leading-none">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+          <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 tracking-tight leading-none">
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors focus:outline-none"
+            className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -69,18 +69,18 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-6 text-sm text-slate-600 leading-relaxed">
+        <div className="flex-1 overflow-y-auto p-6 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
           {children}
         </div>
 
         {/* Footer Actions */}
         {showFooter && (
           footer ? (
-            <div className="px-6 pt-4.5 pb-6 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
+            <div className="px-6 pt-4.5 pb-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-end gap-3">
               {footer}
             </div>
           ) : (
-            <div className="px-6 pt-4.5 pb-6 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
+            <div className="px-6 pt-4.5 pb-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-end gap-3">
               <Button variant="outline" onClick={onClose} className="h-11 px-5 text-xs font-bold">
                 Dismiss
               </Button>

@@ -1,5 +1,5 @@
-// src/pages/admin/AdminRecycleBin.tsx
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Trash2, RotateCcw, AlertTriangle, Book, Megaphone, User, CheckCircle2, AlertCircle } from 'lucide-react';
 import api from '../../lib/api';
 import { useAuth } from '../../hooks/useAuth';
@@ -236,11 +236,11 @@ export const AdminRecycleBin: React.FC = () => {
       )}
 
       {/* Confirmation Modal */}
-      {targetItem && modalAction && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+      {targetItem && modalAction && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
           <div className="fixed inset-0" onClick={() => setTargetItem(null)} />
 
-          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 space-y-5 z-10 animate-scale-up">
+          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 space-y-5 z-10 animate-scale-up">
             <div className="flex items-center gap-3">
               <div className={`h-11 w-11 rounded-2xl flex items-center justify-center text-white ${
                 modalAction === 'restore' ? 'bg-emerald-600' : 'bg-rose-600'
@@ -248,20 +248,20 @@ export const AdminRecycleBin: React.FC = () => {
                 {modalAction === 'restore' ? <RotateCcw className="h-6 w-6" /> : <AlertTriangle className="h-6 w-6" />}
               </div>
               <div>
-                <h3 className="text-base font-extrabold text-slate-800">
+                <h3 className="text-base font-extrabold text-slate-800 dark:text-slate-100">
                   {modalAction === 'restore' ? 'Confirm Record Restoration' : 'Confirm Permanent Deletion'}
                 </h3>
-                <p className="text-xs text-slate-400 font-medium capitalize">
+                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium capitalize">
                   {targetItem.type} Record
                 </p>
               </div>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               {modalAction === 'restore' ? (
                 <>Are you sure you want to restore <strong>"{targetItem.name}"</strong> back to the active library database?</>
               ) : (
-                <span className="text-rose-700 font-medium">
+                <span className="text-rose-700 dark:text-rose-400 font-medium">
                   <strong>Warning:</strong> This action cannot be undone. <strong>"{targetItem.name}"</strong> will be permanently wiped from the MySQL database tables.
                 </span>
               )}
@@ -281,7 +281,8 @@ export const AdminRecycleBin: React.FC = () => {
               </Button>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

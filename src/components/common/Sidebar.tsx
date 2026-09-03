@@ -11,16 +11,12 @@ import {
   Bell, 
   Users, 
   FileBarChart2, 
-  ListOrdered, 
   CalendarClock, 
   Activity, 
   Inbox, 
-  Settings, 
-  ShieldAlert, 
-  Trash2, 
-  Database, 
   Globe, 
   QrCode, 
+  Repeat,
   ChevronDown,
   PanelLeft,
   X
@@ -67,17 +63,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         id: 'circulation',
         title: 'Circulation & Books',
         items: [
-          { label: 'Book Inventory', path: '/admin/books', icon: Book },
-          { label: 'Borrow Logs', path: '/admin/transactions', icon: ListOrdered },
-          { label: 'Reservations', path: '/admin/reservations', icon: CalendarClock },
-          { label: 'Attendance & QR', path: '/admin/attendance', icon: QrCode },
+          { label: 'Book Management', path: '/admin/books', icon: Book },
+          { label: 'Circulation', path: '/admin/transactions', icon: Repeat },
+          { label: 'Reservation Management', path: '/admin/reservations', icon: CalendarClock },
+          { label: 'Attendance Management', path: '/admin/attendance', icon: QrCode },
         ]
       },
       {
         id: 'users',
         title: 'Users & Requests',
         items: [
-          { label: 'Member Directory', path: '/admin/users', icon: Users },
+          { label: 'Member Management', path: '/admin/users', icon: Users },
           { label: 'Request Center', path: '/admin/requests', icon: Inbox },
         ]
       },
@@ -86,18 +82,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         title: 'Analytics & Audit',
         items: [
           { label: 'Reports & Analytics', path: '/admin/reports', icon: FileBarChart2 },
-          { label: 'Audit & System Logs', path: '/admin/system-logs', icon: ShieldAlert },
+          { label: 'Activity Logs', path: '/admin/activity-log', icon: Activity },
         ]
       },
-      {
-        id: 'system',
-        title: 'System & Maintenance',
-        items: [
-          { label: 'System Settings', path: '/admin/settings', icon: Settings },
-          { label: 'Recycle Bin', path: '/admin/recycle-bin', icon: Trash2 },
-          { label: 'Backup & Restore', path: '/admin/backup-restore', icon: Database },
-        ]
-      }
+
     ];
   } else if (isAdmin) {
     menuSections = [
@@ -113,25 +101,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         title: 'Circulation & Books',
         items: [
           { label: 'Book Inventory', path: '/admin/books', icon: Book },
-          { label: 'Borrow Logs', path: '/admin/transactions', icon: ListOrdered },
+          { label: 'Circulation', path: '/admin/transactions', icon: Repeat },
           { label: 'Reservations', path: '/admin/reservations', icon: CalendarClock },
           { label: 'Attendance & QR', path: '/admin/attendance', icon: QrCode },
         ]
       },
       {
         id: 'users',
-        title: 'Users & Requests',
+        title: 'Requests & Services',
         items: [
-          { label: 'Member Directory', path: '/admin/users', icon: Users },
           { label: 'Request Center', path: '/admin/requests', icon: Inbox },
         ]
       },
       {
         id: 'reports',
-        title: 'Reports & Logs',
+        title: 'Reports & Analytics',
         items: [
           { label: 'Reports & Analytics', path: '/admin/reports', icon: FileBarChart2 },
-          { label: 'Activity Log', path: '/admin/activity-log', icon: Activity },
         ]
       }
     ];

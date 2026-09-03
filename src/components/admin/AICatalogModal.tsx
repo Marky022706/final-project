@@ -1,5 +1,5 @@
-// src/components/admin/AICatalogModal.tsx
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Sparkles, Bot, Check, AlertCircle, RefreshCw, X, ShieldCheck } from 'lucide-react';
 import api from '../../lib/api';
 import Button from '../common/Button';
@@ -107,11 +107,11 @@ export const AICatalogModal: React.FC<AICatalogModalProps> = ({ isOpen, onClose,
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
       <div className="fixed inset-0" onClick={handleClose} />
 
-      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden z-10 animate-scale-up">
+      <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden z-10 animate-scale-up">
         
         {/* Header */}
         <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
@@ -355,7 +355,8 @@ export const AICatalogModal: React.FC<AICatalogModalProps> = ({ isOpen, onClose,
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

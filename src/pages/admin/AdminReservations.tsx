@@ -13,11 +13,10 @@ import {
   PackageCheck,
   Bell,
   CalendarDays,
-  User,
   BookOpen,
-  Filter,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle2
 } from 'lucide-react';
 
 interface Reservation {
@@ -42,10 +41,34 @@ interface Reservation {
 }
 
 const statusConfig: Record<string, { bg: string; text: string; border: string; icon: React.ElementType; label: string }> = {
-  pending: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: Clock, label: 'Pending' },
-  ready:   { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: PackageCheck, label: 'Ready' },
-  completed: { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200', icon: CheckCircle, label: 'Completed' },
-  cancelled: { bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-200', icon: XCircle, label: 'Cancelled' }
+  pending: { 
+    bg: 'bg-amber-50 dark:bg-amber-950/40', 
+    text: 'text-amber-700 dark:text-amber-300', 
+    border: 'border-amber-200 dark:border-amber-800', 
+    icon: Clock, 
+    label: 'Pending Queue' 
+  },
+  ready: { 
+    bg: 'bg-emerald-50 dark:bg-emerald-950/40', 
+    text: 'text-emerald-700 dark:text-emerald-300', 
+    border: 'border-emerald-200 dark:border-emerald-800', 
+    icon: PackageCheck, 
+    label: 'Ready for Pickup' 
+  },
+  completed: { 
+    bg: 'bg-slate-100 dark:bg-slate-800', 
+    text: 'text-slate-600 dark:text-slate-300', 
+    border: 'border-slate-200 dark:border-slate-700', 
+    icon: CheckCircle, 
+    label: 'Completed' 
+  },
+  cancelled: { 
+    bg: 'bg-rose-50 dark:bg-rose-950/40', 
+    text: 'text-rose-600 dark:text-rose-300', 
+    border: 'border-rose-200 dark:border-rose-800', 
+    icon: XCircle, 
+    label: 'Cancelled' 
+  }
 };
 
 export const AdminReservations: React.FC = () => {
@@ -66,7 +89,7 @@ export const AdminReservations: React.FC = () => {
     try {
       const response = await api.get('/reservations/list');
       if (response.data && response.data.success) {
-        setReservations(response.data.data);
+        setReservations(response.data.data || []);
       }
     } catch (err) {
       console.error('Failed to fetch reservations:', err);
@@ -88,7 +111,7 @@ export const AdminReservations: React.FC = () => {
         status: newStatus
       });
       if (response.data && response.data.success) {
-        toast.success(response.data.message || `Reservation status updated to "${newStatus}".`);
+        toast.success(response.data.message || `Reservation updated to "${newStatus}".`);
         fetchReservations();
       }
     } catch (err: any) {
@@ -114,30 +137,22 @@ export const AdminReservations: React.FC = () => {
     cancelled: reservations.filter(r => r.status === 'cancelled').length,
   };
 
-  const filterTabs = [
-    { key: 'all', label: 'All', count: counts.all, color: 'slate' },
-    { key: 'pending', label: 'Pending', count: counts.pending, color: 'amber' },
-    { key: 'ready', label: 'Ready', count: counts.ready, color: 'emerald' },
-    { key: 'completed', label: 'Completed', count: counts.completed, color: 'slate' },
-    { key: 'cancelled', label: 'Cancelled', count: counts.cancelled, color: 'rose' },
-  ];
-
   const columns = [
     {
-      header: 'Reservation',
+      header: 'Reservation Item',
       accessor: (row: Reservation) => (
         <div className="flex items-center gap-3">
-          <div className="h-11 w-8.5 bg-slate-50 border border-slate-100 rounded flex items-center justify-center flex-shrink-0">
+          <div className="h-12 w-9 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden shadow-xs">
             {row.cover_image && row.cover_image.startsWith('http') ? (
-              <img src={row.cover_image} alt={row.title} className="h-full w-full object-cover rounded" />
+              <img src={row.cover_image} alt={row.title} className="h-full w-full object-cover" />
             ) : (
-              <BookOpen className="h-5 w-5 text-slate-300" />
+              <BookOpen className="h-4 w-4 text-slate-400" />
             )}
           </div>
           <div className="min-w-0">
-            <p className="font-extrabold text-slate-700 leading-snug line-clamp-1 text-sm">{row.title}</p>
-            <p className="text-[10px] text-slate-400 font-semibold">
-              {row.author} · ISBN: {row.isbn}
+            <p className="font-extrabold text-slate-800 dark:text-slate-100 leading-snug line-clamp-1 text-sm">{row.title}</p>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+              {row.author} · <span className="font-mono">ISBN: {row.isbn}</span>
             </p>
           </div>
         </div>
@@ -146,17 +161,15 @@ export const AdminReservations: React.FC = () => {
       sortKey: 'title'
     },
     {
-      header: 'Member',
+      header: 'Patron / Member',
       accessor: (row: Reservation) => (
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-bold text-emerald-600">
-              {row.first_name[0]}{row.last_name[0]}
-            </span>
+        <div className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center flex-shrink-0 text-emerald-700 dark:text-emerald-400 font-bold text-xs">
+            {row.first_name?.[0] || 'U'}{row.last_name?.[0] || ''}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold text-slate-700 truncate">{row.first_name} {row.last_name}</p>
-            <p className="text-[10px] text-slate-400 font-medium truncate">{row.email}</p>
+            <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{row.first_name} {row.last_name}</p>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate">{row.email}</p>
           </div>
         </div>
       ),
@@ -168,34 +181,34 @@ export const AdminReservations: React.FC = () => {
       accessor: (row: Reservation) => (
         <div className="text-center">
           {row.status === 'pending' && row.queue_position > 0 ? (
-            <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 border border-amber-100 text-amber-700 text-xs font-bold rounded-full">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-xs font-bold rounded-full">
               #{row.queue_position}
             </span>
           ) : (
-            <span className="text-[10px] text-slate-400 font-medium">—</span>
+            <span className="text-xs text-slate-400 font-medium">—</span>
           )}
         </div>
       )
     },
     {
-      header: 'Copies',
+      header: 'Copy Stock',
       accessor: (row: Reservation) => (
         <div className="flex justify-center">
-          <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full border ${
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full border ${
             row.available_copies > 0
-              ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-              : 'bg-rose-50 text-rose-600 border-rose-100'
+              ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+              : 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'
           }`}>
-            {row.available_copies > 0 ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
-            {row.available_copies > 0 ? `${row.available_copies} Available` : 'Unavailable'}
+            {row.available_copies > 0 ? <CheckCircle className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+            {row.available_copies > 0 ? `${row.available_copies} Available` : '0 Copies'}
           </span>
         </div>
       )
     },
     {
-      header: 'Date',
+      header: 'Reserved Date',
       accessor: (row: Reservation) => (
-        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
           <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
           <span>{new Date(row.reservation_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
         </div>
@@ -209,8 +222,8 @@ export const AdminReservations: React.FC = () => {
         const config = statusConfig[row.status] || statusConfig.pending;
         const Icon = config.icon;
         return (
-          <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold rounded-full border capitalize ${config.bg} ${config.text} ${config.border}`}>
-            <Icon className="h-3 w-3" />
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-bold rounded-full border ${config.bg} ${config.text} ${config.border}`}>
+            <Icon className="h-3.5 w-3.5" />
             {config.label}
           </span>
         );
@@ -224,11 +237,11 @@ export const AdminReservations: React.FC = () => {
         const isLoading = actionLoading === row.id;
 
         if (row.status === 'completed' || row.status === 'cancelled') {
-          return <span className="text-[10px] text-slate-400 font-medium italic">No actions</span>;
+          return <span className="text-xs text-slate-400 font-medium italic">No actions</span>;
         }
 
         return (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
             ) : (
@@ -236,30 +249,29 @@ export const AdminReservations: React.FC = () => {
                 {row.status === 'pending' && (
                   <button
                     onClick={() => setConfirmAction({ reservation: row, action: 'ready' })}
-                    className="h-10 px-3.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/50 text-xs font-bold rounded-xl flex items-center gap-2 transition-all active:scale-95"
+                    className="px-3.5 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all active:scale-95 shadow-xs"
                     title="Mark as Ready for Collection"
                   >
-                    <Bell className="h-4 w-4" />
+                    <Bell className="h-3.5 w-3.5" />
                     <span>Mark Ready</span>
                   </button>
                 )}
                 {row.status === 'ready' && (
                   <button
                     onClick={() => setConfirmAction({ reservation: row, action: 'completed' })}
-                    className="h-10 px-3.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/50 text-xs font-bold rounded-xl flex items-center gap-2 transition-all active:scale-95"
+                    className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all active:scale-95 shadow-xs"
                     title="Mark as Completed / Collected"
                   >
-                    <CheckCircle className="h-4 w-4" />
+                    <PackageCheck className="h-3.5 w-3.5" />
                     <span>Complete</span>
                   </button>
                 )}
                 <button
                   onClick={() => setConfirmAction({ reservation: row, action: 'cancelled' })}
-                  className="h-10 px-3.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/50 text-xs font-bold rounded-xl flex items-center gap-2 transition-all active:scale-95"
-                  title="Cancel this reservation"
+                  className="p-1.5 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-xl transition-all active:scale-95"
+                  title="Cancel Reservation"
                 >
                   <XCircle className="h-4 w-4" />
-                  <span>Cancel</span>
                 </button>
               </>
             )}
@@ -269,216 +281,145 @@ export const AdminReservations: React.FC = () => {
     }
   ];
 
-  const getConfirmTitle = () => {
-    if (!confirmAction) return '';
-    switch (confirmAction.action) {
-      case 'ready': return 'Mark as Ready for Collection';
-      case 'completed': return 'Mark as Completed';
-      case 'cancelled': return 'Cancel Reservation';
-      default: return 'Confirm Action';
-    }
-  };
-
-  const getConfirmMessage = () => {
-    if (!confirmAction) return '';
-    const { reservation, action } = confirmAction;
-    const memberName = `${reservation.first_name} ${reservation.last_name}`;
-    const bookTitle = reservation.title;
-
-    switch (action) {
-      case 'ready':
-        return `This will mark the reservation for "${bookTitle}" by ${memberName} as Ready for Collection. The member will receive a notification to pick up their book.`;
-      case 'completed':
-        return `This will mark the reservation for "${bookTitle}" by ${memberName} as Completed. The member has collected their reserved book.`;
-      case 'cancelled':
-        return `This will cancel the reservation for "${bookTitle}" by ${memberName}. This action cannot be undone.`;
-      default:
-        return '';
-    }
-  };
-
-  const getConfirmIcon = () => {
-    if (!confirmAction) return AlertTriangle;
-    switch (confirmAction.action) {
-      case 'ready': return Bell;
-      case 'completed': return CheckCircle;
-      case 'cancelled': return XCircle;
-      default: return AlertTriangle;
-    }
-  };
-
-  const getConfirmColors = () => {
-    if (!confirmAction) return { icon: 'bg-slate-50 text-slate-600 border-slate-100', btn: 'bg-slate-600 hover:bg-slate-700' };
-    switch (confirmAction.action) {
-      case 'ready':
-        return { icon: 'bg-emerald-50 text-emerald-600 border-emerald-100', btn: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100' };
-      case 'completed':
-        return { icon: 'bg-blue-50 text-blue-600 border-blue-100', btn: 'bg-blue-600 hover:bg-blue-700 shadow-blue-100' };
-      case 'cancelled':
-        return { icon: 'bg-rose-50 text-rose-600 border-rose-100', btn: 'bg-rose-600 hover:bg-rose-700 shadow-rose-100' };
-      default:
-        return { icon: 'bg-slate-50 text-slate-600 border-slate-100', btn: 'bg-slate-600 hover:bg-slate-700' };
-    }
-  };
-
-  const ConfirmIcon = getConfirmIcon();
-  const confirmColors = getConfirmColors();
-
   return (
-    <div className="space-y-6 fade-in">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-extrabold text-slate-800 tracking-tight leading-none mb-1">
-            Reservations Management
-          </h2>
-          <p className="text-xs text-slate-400 font-semibold">
-            View and manage all member book reservations, notify members, and process collection
-          </p>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-          <BookMarked className="h-4 w-4 text-emerald-600" />
-          <span>{counts.all} total reservations</span>
+    <div className="space-y-6 fade-in max-w-[1600px] mx-auto pb-12">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm transition-colors">
+        <div className="flex items-center gap-3.5">
+          <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-lg shadow-emerald-900/10 flex-shrink-0">
+            <BookMarked className="h-6 w-6" />
+          </div>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight leading-none mb-1">
+              Reservations & Hold Queue Management
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+              Review queue priority, notify patrons for pickup & manage hold requests
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Filter Status Tabs */}
-      <div className="flex flex-wrap gap-2">
-        {filterTabs.map(tab => {
+      {/* Interactive Filter Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {[
+          { key: 'all', label: 'All Holds', count: counts.all, color: 'slate' },
+          { key: 'pending', label: 'Pending Queue', count: counts.pending, color: 'amber' },
+          { key: 'ready', label: 'Ready for Pickup', count: counts.ready, color: 'emerald' },
+          { key: 'completed', label: 'Completed Holds', count: counts.completed, color: 'blue' },
+          { key: 'cancelled', label: 'Cancelled Holds', count: counts.cancelled, color: 'rose' },
+        ].map((tab) => {
           const isActive = activeFilter === tab.key;
           return (
-            <button
+            <div
               key={tab.key}
               onClick={() => setActiveFilter(tab.key)}
-              className={`h-10 px-4 text-xs font-bold rounded-xl border transition-all duration-150 active:scale-95 flex items-center gap-2 ${
+              className={`p-5 rounded-3xl border transition-all cursor-pointer hover-lift ${
                 isActive
-                  ? `bg-${tab.color === 'slate' ? 'slate-800' : tab.color + '-600'} text-white border-transparent shadow-md`
-                  : `bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50`
+                  ? 'bg-slate-900 text-white border-slate-900 dark:bg-emerald-950/70 dark:border-emerald-500/50 shadow-lg'
+                  : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-100'
               }`}
-              style={isActive ? {
-                backgroundColor: tab.color === 'amber' ? '#d97706' : tab.color === 'emerald' ? '#059669' : tab.color === 'rose' ? '#e11d48' : '#334155',
-                color: 'white',
-                borderColor: 'transparent'
-              } : {}}
             >
-              <Filter className="h-3 w-3" />
-              <span>{tab.label}</span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-              }`}>
-                {tab.count}
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                {tab.label}
               </span>
-            </button>
+              <p className="text-2xl sm:text-3xl font-black">{tab.count}</p>
+            </div>
           );
         })}
       </div>
 
-      {/* Reservations Table */}
+      {/* Main Table */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center p-20 space-y-4">
-          <svg className="animate-spin h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-          </svg>
-        </div>
-      ) : filteredReservations.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-16 space-y-3 text-center">
-          <div className="h-14 w-14 rounded-full bg-slate-100 flex items-center justify-center">
-            <BookMarked className="h-7 w-7 text-slate-300" />
-          </div>
-          <div>
-            <p className="text-sm font-bold text-slate-600">No reservations found</p>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">
-              {activeFilter === 'all'
-                ? 'There are no reservations in the system yet.'
-                : `No reservations with "${activeFilter}" status.`}
-            </p>
-          </div>
+        <div className="flex flex-col items-center justify-center p-24 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 space-y-3">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent" />
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Loading reservations queue...</p>
         </div>
       ) : (
-        <DataTable
-          columns={columns}
-          data={filteredReservations}
-          searchPlaceholder="Search by book title, member name, reservation ID..."
-          searchField={(row: Reservation) => `${row.title} ${row.first_name} ${row.last_name} ${row.reservation_id} ${row.isbn}`}
-          initialSortKey="reservation_date"
-          itemsPerPage={10}
-        />
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8 shadow-sm">
+          <DataTable
+            columns={columns}
+            data={filteredReservations}
+            searchPlaceholder="Search holds by book title, author, patron name, ISBN..."
+            searchField={(row) => `${row.title} ${row.author} ${row.first_name} ${row.last_name} ${row.isbn}`}
+            initialSortKey="reservation_date"
+            itemsPerPage={10}
+          />
+        </div>
       )}
 
-      {/* Confirmation Modal */}
-      <Modal
-        isOpen={!!confirmAction}
-        onClose={() => setConfirmAction(null)}
-        title={getConfirmTitle()}
-        size="sm"
-        footer={
-          <div className="flex items-center justify-center gap-3 w-full">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setConfirmAction(null)}
-              className="h-11 px-5 text-xs font-bold"
-            >
-              Cancel
-            </Button>
-            <button
-              type="button"
-              onClick={() => {
-                if (confirmAction) {
-                  handleUpdateStatus(confirmAction.reservation.id, confirmAction.action);
-                }
-              }}
-              disabled={actionLoading !== null}
-              className={`h-11 px-6 text-xs font-bold text-white rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-60 ${confirmColors.btn}`}
-            >
-              {actionLoading !== null ? (
-                <span className="flex items-center gap-1.5">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Processing...
-                </span>
-              ) : (
-                'Confirm'
-              )}
-            </button>
-          </div>
-        }
-      >
-        {confirmAction && (
-          <div className="space-y-5 text-center px-4 pt-4 pb-2">
-            <div className={`mx-auto h-12 w-12 rounded-full border flex items-center justify-center mb-1 animate-pulse ${confirmColors.icon}`}>
-              <ConfirmIcon className="h-6 w-6" />
+      {/* CONFIRMATION ACTION MODAL */}
+      {confirmAction && (
+        <Modal
+          isOpen={true}
+          onClose={() => setConfirmAction(null)}
+          title={
+            confirmAction.action === 'ready'
+              ? 'Mark Reservation Ready for Pickup'
+              : confirmAction.action === 'completed'
+              ? 'Complete Reservation & Check Out'
+              : 'Cancel Reservation'
+          }
+          size="md"
+          footer={
+            <div className="flex items-center justify-end gap-3 w-full">
+              <Button
+                variant="outline"
+                onClick={() => setConfirmAction(null)}
+                className="h-11 px-5 text-xs font-bold"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant={confirmAction.action === 'cancelled' ? 'danger' : 'primary'}
+                onClick={() => handleUpdateStatus(confirmAction.reservation.id, confirmAction.action)}
+                disabled={actionLoading !== null}
+                className="h-11 px-6 text-xs font-bold"
+              >
+                {actionLoading !== null ? 'Updating...' : 'Confirm Action'}
+              </Button>
             </div>
-            <div className="space-y-2">
-              <h4 className="text-sm font-bold text-slate-800">{getConfirmTitle()}</h4>
-              <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
-                {getConfirmMessage()}
+          }
+        >
+          <div className="flex flex-col items-center text-center space-y-4 py-2">
+            <div className={`h-16 w-16 rounded-3xl flex items-center justify-center shadow-lg ${
+              confirmAction.action === 'ready'
+                ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/30'
+                : confirmAction.action === 'completed'
+                ? 'bg-blue-500/20 text-blue-600 border border-blue-500/30'
+                : 'bg-rose-500/20 text-rose-600 border border-rose-500/30'
+            }`}>
+              {confirmAction.action === 'ready' && <PackageCheck className="h-8 w-8" />}
+              {confirmAction.action === 'completed' && <CheckCircle2 className="h-8 w-8" />}
+              {confirmAction.action === 'cancelled' && <XCircle className="h-8 w-8" />}
+            </div>
+
+            <div>
+              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                Are you sure you want to update hold status for:
+              </p>
+              <p className="text-lg font-black text-slate-800 dark:text-slate-100 mt-1">
+                "{confirmAction.reservation.title}"
+              </p>
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-1">
+                Patron: <strong className="text-emerald-600 dark:text-emerald-400">{confirmAction.reservation.first_name} {confirmAction.reservation.last_name}</strong>
               </p>
             </div>
 
-            {/* Reservation info card */}
-            <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-left space-y-2">
-              <div className="flex items-center gap-2">
-                <User className="h-3.5 w-3.5 text-slate-400" />
-                <span className="text-xs font-bold text-slate-700">
-                  {confirmAction.reservation.first_name} {confirmAction.reservation.last_name}
-                </span>
-                <span className="text-[10px] text-slate-400 font-medium">({confirmAction.reservation.email})</span>
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-left w-full text-xs space-y-1 text-slate-600 dark:text-slate-300">
+              <div className="flex items-center gap-2 font-bold">
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                <span>Queue Notification</span>
               </div>
-              <div className="flex items-center gap-2">
-                <BookOpen className="h-3.5 w-3.5 text-slate-400" />
-                <span className="text-xs font-semibold text-slate-600 line-clamp-1">{confirmAction.reservation.title}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
-                <span className="text-[10px] text-slate-500 font-medium">
-                  Reserved on {new Date(confirmAction.reservation.reservation_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                </span>
-              </div>
+              <p className="leading-relaxed text-[11px] text-slate-500 dark:text-slate-400">
+                {confirmAction.action === 'ready' && 'The member will be notified that the book is placed on hold at the circulation counter.'}
+                {confirmAction.action === 'completed' && 'This marks the reservation fulfilled and converts the hold into a checked-out loan.'}
+                {confirmAction.action === 'cancelled' && 'This releases the book reservation and advances the queue for the next member.'}
+              </p>
             </div>
           </div>
-        )}
-      </Modal>
+        </Modal>
+      )}
     </div>
   );
 };

@@ -24,7 +24,7 @@ type SettingsSection = 'profile' | 'security' | 'notifications' | 'theme' | 'dan
 
 export const AccountSettings: React.FC = () => {
   const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, fontSize, setFontSize } = useTheme();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<SettingsSection>('profile');
   const [hasChanges, setHasChanges] = useState(false);
@@ -386,12 +386,16 @@ export const AccountSettings: React.FC = () => {
       <div>
         <h3 className="text-lg font-semibold text-slate-800 mb-4">Font Size</h3>
         <div className="flex gap-3">
-          {['small', 'medium', 'large'].map((size) => (
+          {(['small', 'medium', 'large'] as const).map((size) => (
             <button
               key={size}
-              onClick={() => setThemeSettings({ ...themeSettings, fontSize: size })}
+              type="button"
+              onClick={() => {
+                setFontSize(size);
+                setThemeSettings({ ...themeSettings, fontSize: size });
+              }}
               className={`px-4 py-2 border-2 rounded-xl transition-all ${
-                themeSettings.fontSize === size
+                fontSize === size
                   ? 'border-emerald-500 bg-emerald-50'
                   : 'border-slate-200 hover:border-slate-300'
               }`}
@@ -425,10 +429,10 @@ export const AccountSettings: React.FC = () => {
       <div className="p-6 bg-white border border-slate-200 rounded-xl">
         <p className="text-sm text-slate-500 mb-4">Preview</p>
         <div className={`p-4 bg-slate-50 rounded-lg ${themeSettings.compactMode ? 'space-y-2' : 'space-y-3'}`}>
-          <p className={`font-semibold text-slate-800 ${themeSettings.fontSize === 'small' ? 'text-sm' : themeSettings.fontSize === 'large' ? 'text-lg' : ''}`}>
+          <p className={`font-semibold text-slate-800 ${fontSize === 'small' ? 'text-sm' : fontSize === 'large' ? 'text-lg' : ''}`}>
             Sample Card Title
           </p>
-          <p className={`text-slate-600 ${themeSettings.fontSize === 'small' ? 'text-xs' : themeSettings.fontSize === 'large' ? 'text-base' : 'text-sm'}`}>
+          <p className={`text-slate-600 ${fontSize === 'small' ? 'text-xs' : fontSize === 'large' ? 'text-base' : 'text-sm'}`}>
             This is how your content will appear with the selected settings.
           </p>
         </div>

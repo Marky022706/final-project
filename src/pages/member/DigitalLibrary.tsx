@@ -1,5 +1,5 @@
-// src/pages/member/DigitalLibrary.tsx
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Globe, Search, BookOpen, FileText, Sparkles, Clock, AlertCircle } from 'lucide-react';
 import api from '../../lib/api';
 import Button from '../../components/common/Button';
@@ -197,11 +197,11 @@ export const DigitalLibrary: React.FC = () => {
       )}
 
       {/* Embedded Digital Reader Modal */}
-      {activeReadingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/80 backdrop-blur-md animate-fade-in">
+      {activeReadingItem && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/80 backdrop-blur-md animate-fade-in">
           <div className="fixed inset-0" onClick={() => setActiveReadingItem(null)} />
 
-          <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col h-[85vh] overflow-hidden z-10 animate-scale-up">
+          <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col h-[85vh] overflow-hidden z-10 animate-scale-up">
             {/* Reader Header */}
             <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
               <div className="flex items-center gap-3">
@@ -233,33 +233,33 @@ export const DigitalLibrary: React.FC = () => {
             </div>
 
             {/* Reader Body Viewer */}
-            <div className="flex-1 bg-slate-50 p-6 overflow-y-auto space-y-6">
-              <div className="max-w-2xl mx-auto bg-white p-8 sm:p-12 rounded-3xl shadow-sm border border-slate-200/80 space-y-6">
-                <div className="border-b border-slate-100 pb-6 text-center space-y-2">
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200 uppercase tracking-wider">
+            <div className="flex-1 bg-slate-50 dark:bg-slate-950 p-6 overflow-y-auto space-y-6">
+              <div className="max-w-2xl mx-auto bg-white dark:bg-slate-900 p-8 sm:p-12 rounded-3xl shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-6">
+                <div className="border-b border-slate-100 dark:border-slate-800 pb-6 text-center space-y-2">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 uppercase tracking-wider">
                     {activeReadingItem.category}
                   </span>
-                  <h1 className="text-2xl font-extrabold text-slate-800 leading-tight">
+                  <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-tight">
                     {activeReadingItem.title}
                   </h1>
-                  <p className="text-sm text-slate-500 font-medium">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                     Published by {activeReadingItem.author}
                   </p>
                 </div>
 
-                <div className="prose prose-slate max-w-none text-sm text-slate-700 leading-relaxed space-y-4">
-                  <p className="font-semibold text-slate-800">
+                <div className="prose prose-slate dark:prose-invert max-w-none text-sm text-slate-700 dark:text-slate-300 leading-relaxed space-y-4">
+                  <p className="font-semibold text-slate-800 dark:text-slate-200">
                     Overview & Description:
                   </p>
                   <p>
                     {activeReadingItem.description || 'This digital monograph is part of the Balingasag Municipal Public Library digital repository. It is made available for online reading, academic study, and municipal research.'}
                   </p>
-                  <div className="p-6 bg-teal-50/50 rounded-2xl border border-teal-100 text-xs text-teal-900 space-y-2">
+                  <div className="p-6 bg-teal-50/50 dark:bg-teal-950/30 rounded-2xl border border-teal-100 dark:border-teal-900 text-xs text-teal-900 dark:text-teal-200 space-y-2">
                     <p className="font-bold flex items-center gap-1.5">
-                      <Sparkles className="h-4 w-4 text-teal-600" />
+                      <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" />
                       Digital Reading Rights & Citation
                     </p>
-                    <p className="text-teal-800/80 leading-relaxed">
+                    <p className="text-teal-800/80 dark:text-teal-300/80 leading-relaxed">
                       Source document verified by Balingasag Municipal Library. Reading activity is securely recorded to your member reading timeline.
                     </p>
                   </div>
@@ -267,7 +267,8 @@ export const DigitalLibrary: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

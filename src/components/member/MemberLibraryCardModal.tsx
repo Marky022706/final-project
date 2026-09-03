@@ -1,5 +1,5 @@
-// src/components/member/MemberLibraryCardModal.tsx
 import React, { useRef } from 'react';
+import { createPortal } from 'react-dom';
 import QRCode from 'react-qr-code';
 import { IdCard, Printer, X, ShieldCheck } from 'lucide-react';
 import logoImg from '../../assets/logo.png';
@@ -23,11 +23,11 @@ export const MemberLibraryCardModal: React.FC<MemberLibraryCardModalProps> = ({ 
     window.print();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 backdrop-blur-sm animate-fade-in">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 backdrop-blur-sm animate-fade-in">
       <div className="fixed inset-0" onClick={onClose} />
 
-      <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-10 animate-scale-up space-y-5 p-6">
+      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden z-10 animate-scale-up space-y-5 p-6">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-900/10">
@@ -149,7 +149,8 @@ export const MemberLibraryCardModal: React.FC<MemberLibraryCardModalProps> = ({ 
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

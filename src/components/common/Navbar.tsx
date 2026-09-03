@@ -1,5 +1,5 @@
-// src/components/common/Navbar.tsx
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../lib/api';
 import { 
@@ -11,7 +11,8 @@ import {
   LogOut, 
   ChevronRight, 
   Home, 
-  LayoutDashboard 
+  LayoutDashboard,
+  Search
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import UserAccountDropdown from './UserAccountDropdown';
@@ -42,7 +43,8 @@ const getBreadcrumbs = (pathname: string, role?: string): BreadcrumbItem[] => {
       case '/admin/users':
         return [rootItem, { label: 'Member Directory' }];
       case '/admin/transactions':
-        return [rootItem, { label: 'Borrow Logs' }];
+      case '/admin/circulation':
+        return [rootItem, { label: 'Circulation' }];
       case '/admin/reservations':
         return [rootItem, { label: 'Reservations' }];
       case '/admin/fines':
@@ -188,12 +190,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   if (!user) return null;
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between h-20 md:h-24 px-6 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm shadow-slate-200/50">
+    <header className="sticky top-0 z-40 flex items-center justify-between h-20 md:h-24 px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 shadow-sm shadow-slate-200/50 dark:shadow-slate-950/50 transition-colors">
       <div className="flex items-center gap-3">
         {/* Mobile menu trigger */}
         <button
           onClick={onMenuToggle}
-          className="p-2 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl lg:hidden focus:outline-none transition-colors"
+          className="p-2 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-xl lg:hidden focus:outline-none transition-colors"
           aria-label="Toggle menu"
         >
           <Menu className="h-6 w-6" />
@@ -208,19 +210,19 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
               return (
                 <li key={idx} className="flex items-center gap-1.5 sm:gap-2">
                   {idx > 0 && (
-                    <ChevronRight className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                    <ChevronRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-600 flex-shrink-0" />
                   )}
                   {crumb.path && !isLast ? (
                     <Link
                       to={crumb.path}
-                      className="group flex items-center gap-1.5 text-xs sm:text-sm font-medium text-slate-500 hover:text-emerald-600 transition-colors"
+                      className="group flex items-center gap-1.5 text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                     >
-                      {Icon && <Icon className="h-3.5 w-3.5 text-slate-400 group-hover:text-emerald-600 transition-colors" />}
+                      {Icon && <Icon className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />}
                       <span className="truncate max-w-[120px] sm:max-w-none">{crumb.label}</span>
                     </Link>
                   ) : (
-                    <span className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800">
-                      {Icon && <Icon className="h-3.5 w-3.5 text-emerald-600" />}
+                    <span className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100">
+                      {Icon && <Icon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />}
                       <span className="truncate max-w-[160px] sm:max-w-none">{crumb.label}</span>
                     </span>
                   )}
@@ -231,7 +233,22 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
         </nav>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* Interactive Quick Search / Command Palette Trigger */}
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 border border-slate-200/60 dark:border-slate-700/60 rounded-xl transition-all group interactive-btn"
+          title="Search books, commands & pages (Ctrl+K)"
+        >
+          <Search className="h-4 w-4 text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />
+          <span className="hidden md:inline">Quick Search...</span>
+          <span className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded shadow-2xs">
+            <span>Ctrl</span>
+            <span>K</span>
+          </span>
+        </button>
+
         {/* Notifications Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
@@ -239,47 +256,47 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
               setDropdownOpen(!dropdownOpen);
               fetchNotifications();
             }}
-            className="relative p-2.5 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all focus:outline-none"
+            className="relative p-2.5 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-xl transition-all focus:outline-none"
             aria-label="Notifications"
           >
             <Bell className="h-5.5 w-5.5" />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white ring-2 ring-white animate-pulse">
+              <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white ring-2 ring-white dark:ring-slate-900 animate-pulse">
                 {unreadCount}
               </span>
             )}
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 mt-3 w-[360px] h-[180px] aspect-[2/1] bg-white/95 backdrop-blur-md border border-slate-100 shadow-2xl shadow-slate-200/80 rounded-2xl overflow-hidden animate-fade-in z-50 flex flex-col justify-between">
-              <div className="flex items-center justify-between px-5 py-3 border-b border-slate-50 flex-shrink-0">
-                <span className="text-xs font-bold text-slate-800">Notifications</span>
+            <div className="absolute right-0 mt-3 w-[360px] h-[180px] aspect-[2/1] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-100 dark:border-slate-800 shadow-2xl shadow-slate-200/80 dark:shadow-slate-950/80 rounded-2xl overflow-hidden animate-fade-in z-50 flex flex-col justify-between">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-slate-50 dark:border-slate-800 flex-shrink-0">
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Notifications</span>
                 {unreadCount > 0 && (
-                  <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full">
                     {unreadCount} unread
                   </span>
                 )}
               </div>
 
-              <div className="flex-1 overflow-y-auto divide-y divide-slate-50 min-h-0">
+              <div className="flex-1 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800 min-h-0">
                 {notifications.length === 0 ? (
                   <div className="flex flex-col items-center justify-center p-6 text-center h-full">
                     <Check className="h-6 w-6 text-emerald-400 mb-1" />
-                    <p className="text-[11px] font-semibold text-slate-600">All caught up!</p>
+                    <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">All caught up!</p>
                   </div>
                 ) : (
                   notifications.map((n) => (
                     <div 
                       key={n.id} 
-                      className={`flex gap-2.5 px-4 py-2.5 transition-colors ${n.is_read ? 'bg-white' : 'bg-slate-50/45 hover:bg-slate-50'}`}
+                      className={`flex gap-2.5 px-4 py-2.5 transition-colors ${n.is_read ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/45 dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/70'}`}
                     >
                       <div className="mt-0.5 flex-shrink-0">
                         {n.type === 'overdue' ? (
-                          <div className="p-1 rounded-lg bg-rose-50 text-rose-500">
+                          <div className="p-1 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400">
                             <AlertTriangle className="h-3.5 w-3.5" />
                           </div>
                         ) : (
-                          <div className="p-1 rounded-lg bg-emerald-50 text-emerald-600">
+                          <div className="p-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
                             <BookOpen className="h-3.5 w-3.5" />
                           </div>
                         )}
@@ -287,18 +304,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-1.5">
-                          <p className="text-[11px] font-bold text-slate-700 truncate">{n.title}</p>
+                          <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">{n.title}</p>
                           {!n.is_read && (
                             <button
                               onClick={(e) => handleMarkAsRead(n.id, e)}
-                              className="text-[9px] font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-1.5 py-0.5 rounded transition-colors flex-shrink-0 focus:outline-none"
+                              className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 px-1.5 py-0.5 rounded transition-colors flex-shrink-0 focus:outline-none"
                               title="Mark as read"
                             >
                               Read
                             </button>
                           )}
                         </div>
-                        <p className="text-[10px] text-slate-500 leading-normal mt-0.5 line-clamp-1">
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-normal mt-0.5 line-clamp-1">
                           {n.message}
                         </p>
                       </div>
@@ -310,7 +327,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
               <Link
                 to="/notifications"
                 onClick={() => setDropdownOpen(false)}
-                className="block text-center py-2.5 border-t border-slate-50 text-[11px] font-bold text-emerald-600 hover:text-emerald-700 bg-slate-50/40 hover:bg-slate-50 transition-colors flex-shrink-0"
+                className="block text-center py-2.5 border-t border-slate-50 dark:border-slate-800 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 bg-slate-50/40 dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex-shrink-0"
               >
                 View all notifications
               </Link>
@@ -323,48 +340,46 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
       </div>
 
       {/* Logout Confirmation Modal */}
-      {isLogoutModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      {isLogoutModalOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div 
-            className="fixed inset-0 bg-gradient-to-br from-slate-900/80 via-slate-800/80 to-rose-900/60 backdrop-blur-sm animate-fade-in"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
             onClick={() => setIsLogoutModalOpen(false)}
           />
-          <div className="relative w-full max-w-sm bg-gradient-to-br from-white via-white to-rose-50/30 border border-white/20 rounded-3xl shadow-2xl p-8 text-center animate-fade-in z-10 space-y-5 overflow-hidden">
-            {/* Decorative background elements */}
-            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-rose-100/50 via-purple-50/30 to-transparent rounded-t-3xl"></div>
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-rose-200/30 rounded-full blur-3xl"></div>
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-200/30 rounded-full blur-3xl"></div>
-            
+          <div className="relative w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-2xl p-8 text-center animate-fade-in z-10 space-y-5 overflow-hidden">
             {/* Icon */}
-            <div className="relative z-10 p-4 bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-2xl w-16 h-16 mx-auto flex items-center justify-center shadow-lg shadow-rose-500/30">
+            <div className="p-4 bg-rose-500 text-white rounded-2xl w-16 h-16 mx-auto flex items-center justify-center shadow-lg shadow-rose-500/25">
               <LogOut className="h-8 w-8 stroke-[2.5]" />
             </div>
 
-            <div className="relative z-10 space-y-2">
-              <h3 className="text-xl font-bold text-slate-800 tracking-tight">
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                 Confirm Logout
               </h3>
-              <p className="text-sm text-slate-600 leading-relaxed font-medium">
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                 Are you sure you want to end your current session? You'll need your card credentials to sign back into Balingasag Library.
               </p>
             </div>
 
-            <div className="relative z-10 flex gap-3 pt-2">
+            <div className="flex gap-3 pt-2">
               <button
+                type="button"
                 onClick={() => setIsLogoutModalOpen(false)}
-                className="flex-1 px-5 py-3 border-2 border-slate-200 hover:border-slate-300 text-slate-700 text-sm font-bold rounded-2xl bg-white hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
+                className="flex-1 px-5 py-3 border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-200 text-sm font-bold rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 shadow-sm"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={confirmLogout}
-                className="flex-1 px-5 py-3 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-sm font-bold rounded-2xl shadow-lg shadow-rose-500/30 transition-all active:scale-95"
+                className="flex-1 px-5 py-3 bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold rounded-2xl shadow-lg shadow-rose-500/25 transition-all active:scale-95"
               >
                 Logout
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </header>
   );
